@@ -1,0 +1,5 @@
+node_modules/
+.env
+logs/
+check-db*.js
+run-today.js
