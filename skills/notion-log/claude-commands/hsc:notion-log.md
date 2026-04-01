@@ -1,5 +1,5 @@
 ---
-name: notion-log
+name: hsc:notion-log
 description: Claude Code 세션을 Notion에 기록 (오늘 또는 특정 날짜)
 argument-hint: "[YYYY-MM-DD]"
 allowed-tools: Bash, Read, Write

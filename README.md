@@ -19,7 +19,7 @@ cd claude-custom-skills
 
 ## 스킬 목록
 
-### `/notion-log`
+### `/hsc:notion-log`
 
 Claude Code 세션 내용을 Notion에 자동 기록하고 Slack으로 알림을 보냅니다.
 
@@ -27,7 +27,7 @@ Claude Code 세션 내용을 Notion에 자동 기록하고 Slack으로 알림을
 
 | 구분 | 설명 |
 |------|------|
-| Custom Skill | `/notion-log` 슬래시 커맨드 |
+| Custom Skill | `/hsc:notion-log` 슬래시 커맨드 |
 | Stop Hook | 세션 종료 시 로깅 리마인더 |
 | Node.js 스크립트 | Notion REST API + Slack Webhook |
 | launchd | 매일 자정 어제 세션 자동 수집 |
@@ -35,8 +35,8 @@ Claude Code 세션 내용을 Notion에 자동 기록하고 Slack으로 알림을
 **사용법:**
 
 ```bash
-/notion-log              # 오늘 세션 기록
-/notion-log 2026-03-30   # 특정 날짜 기록
+/hsc:notion-log              # 오늘 세션 기록
+/hsc:notion-log 2026-03-30   # 특정 날짜 기록
 ```
 
 **기능:**
@@ -77,10 +77,10 @@ skills/notion-log/
 ├── stop-hook.sh              # 세션 종료 Hook
 ├── daily-log.sh              # launchd 매일 실행 스크립트
 └── claude-commands/
-    └── notion-log.md         # 슬래시 커맨드 정의
+    └── hsc:notion-log.md     # 슬래시 커맨드 정의
 ```
 
-### `/digest`
+### `/hsc:digest`
 
 과거 모든 Claude Code 세션에서 특정 주제 관련 대화를 검색하고, 종합하여 Notion 문서로 생성합니다.
 
@@ -88,14 +88,14 @@ skills/notion-log/
 
 | 구분 | 설명 |
 |------|------|
-| Custom Skill | `/digest` 슬래시 커맨드 |
+| Custom Skill | `/hsc:digest` 슬래시 커맨드 |
 | Node.js 스크립트 | 세션 검색 + Notion REST API + Slack Webhook |
 
 **사용법:**
 
 ```bash
-/digest Prisma          # Prisma 관련 모든 대화 종합
-/digest Kubernetes      # K8s 관련 종합 문서 생성
+/hsc:digest Prisma          # Prisma 관련 모든 대화 종합
+/hsc:digest Kubernetes      # K8s 관련 종합 문서 생성
 ```
 
 **기능:**
@@ -124,7 +124,7 @@ skills/digest/
 ├── search-sessions.js        # 전체 세션 키워드 검색
 ├── digest-to-notion.js       # Notion 종합 문서 생성
 └── claude-commands/
-    └── digest.md             # 슬래시 커맨드 정의
+    └── hsc:digest.md         # 슬래시 커맨드 정의
 ```
 
 ## 관리

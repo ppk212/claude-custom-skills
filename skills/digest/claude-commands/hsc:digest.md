@@ -1,5 +1,5 @@
 ---
-name: digest
+name: hsc:digest
 description: 과거 모든 세션에서 특정 주제 관련 대화를 찾아 Notion 문서로 정리
 argument-hint: "<주제 (한글/영어)>"
 allowed-tools: Bash, Read, Write

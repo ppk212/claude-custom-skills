@@ -134,12 +134,12 @@ echo "📝 Claude Code 커맨드 설치..."
 mkdir -p "$CLAUDE_DIR/commands"
 
 # notion-log 커맨드
-cp "$NOTION_SKILL_DIR/claude-commands/notion-log.md" "$CLAUDE_DIR/commands/notion-log.md"
-echo "  ✅ /notion-log 커맨드 설치"
+cp "$NOTION_SKILL_DIR/claude-commands/hsc:notion-log.md" "$CLAUDE_DIR/commands/hsc:notion-log.md"
+echo "  ✅ /hsc:notion-log 커맨드 설치"
 
 # digest 커맨드
-cp "$DIGEST_SKILL_DIR/claude-commands/digest.md" "$CLAUDE_DIR/commands/digest.md"
-echo "  ✅ /digest 커맨드 설치"
+cp "$DIGEST_SKILL_DIR/claude-commands/hsc:digest.md" "$CLAUDE_DIR/commands/hsc:digest.md"
+echo "  ✅ /hsc:digest 커맨드 설치"
 
 # ============================================================
 # 5. Claude Code Hook 설정
@@ -267,9 +267,9 @@ echo "============================================================"
 echo "🎉 세팅 완료!"
 echo ""
 echo "사용법:"
-echo "  /notion-log              오늘 세션 Notion에 기록"
-echo "  /notion-log 2026-03-30   특정 날짜 기록"
-echo "  /digest <주제>           주제별 종합 문서 생성"
+echo "  /hsc:notion-log              오늘 세션 Notion에 기록"
+echo "  /hsc:notion-log 2026-03-30   특정 날짜 기록"
+echo "  /hsc:digest <주제>           주제별 종합 문서 생성"
 echo ""
 echo "자동 실행:"
 echo "  매일 00:00 — 어제 세션 자동 수집 → Notion + Slack"
