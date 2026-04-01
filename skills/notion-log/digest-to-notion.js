@@ -2,7 +2,7 @@ import "dotenv/config";
 import { readFileSync, writeFileSync } from "fs";
 
 const NOTION_API_KEY = process.env.NOTION_API_KEY;
-const TOPIC_DB_ID = process.env.TOPIC_DB_ID;
+const DIGEST_DB_ID = process.env.DIGEST_DB_ID;
 const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL;
 const NOTION_VERSION = "2022-06-28";
 
@@ -117,7 +117,7 @@ console.log(`📝 주제: ${doc.name}`);
 console.log(`   태그: [${doc.tags.join(", ")}]`);
 
 // 기존 주제 검색
-const topicQuery = await notionPost(`/databases/${TOPIC_DB_ID}/query`, {
+const topicQuery = await notionPost(`/databases/${DIGEST_DB_ID}/query`, {
   filter: { property: "이름", title: { equals: doc.name } },
 });
 const existingTopic = topicQuery.results[0];
@@ -151,7 +151,7 @@ if (existingTopic) {
   // 새 페이지 생성
   const pageBlocks = blocks.slice(0, 100); // 첫 100블록은 생성 시 포함
   const newPage = await notionPost("/pages", {
-    parent: { database_id: TOPIC_DB_ID },
+    parent: { database_id: DIGEST_DB_ID },
     properties: {
       이름: { title: [{ text: { content: doc.name } }] },
       주제: { multi_select: tags },
