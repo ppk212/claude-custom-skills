@@ -1,0 +1,9 @@
+{
+  "name": "claude-digest",
+  "version": "1.0.0",
+  "description": "Claude Code session digest - 주제별 종합 문서 생성",
+  "type": "module",
+  "dependencies": {
+    "dotenv": "^17.3.1"
+  }
+}

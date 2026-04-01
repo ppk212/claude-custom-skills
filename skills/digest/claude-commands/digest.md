@@ -17,7 +17,7 @@ allowed-tools: Bash, Read, Write
 모든 프로젝트의 모든 세션에서 주제 관련 대화를 검색한다.
 
 ```bash
-cd ~/.claude-notion-logger && node search-sessions.js --query "$ARGUMENTS"
+cd ~/.claude-digest && node search-sessions.js --query "$ARGUMENTS"
 ```
 
 ### 2. 검색 결과 읽기
@@ -61,7 +61,7 @@ JSON 구조:
 
 ### 4. Notion에 기록
 ```bash
-cd ~/.claude-notion-logger && node digest-to-notion.js
+cd ~/.claude-digest && node digest-to-notion.js
 ```
 
 이 스크립트가 주제별 DB에 문서를 생성/업데이트한다.
