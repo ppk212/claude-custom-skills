@@ -49,14 +49,22 @@ JSON 구조:
 
 #### 분석 규칙
 - **summary**: 해당 날짜 작업의 핵심을 한 줄로 (결과 중심)
-- **details**: 마크다운 형식
+- **details**: 마크다운 형식으로 **상세하게** 작성
   - `## 제목` 으로 섹션 구분
   - `- 결과 항목` 으로 메인 bullet (결과 중심)
   - `  - (자동) 세부 내용` 으로 Claude가 자동 수행한 작업 표시
+  - **코드, SQL, 명령어, 설정값** 등 구체적인 내용이 있으면 반드시 포함
+  - "정리했다", "분석했다"만 쓰지 말고 **무엇을 어떻게 정리/분석했는지** 상세히 기술
+  - 예시:
+    - ❌ "SQL 쿼리 정리"
+    - ✅ "voice_group → voice ID 조회 쿼리 정리:\n  - `SELECT id FROM voice_group WHERE name = 'Play Voice'`\n  - Relations 테이블 통해 voice_id 목록 조회"
+    - ❌ "관계 체인 분석"
+    - ✅ "Voice 엔티티 관계 체인 매핑:\n  - Voice → Style (style.voice_id)\n  - Style → Embedding (embedding.style_id)\n  - Embedding → Source → RecordingSource"
 - **topics**: 세션 내용에서 주제를 추출
   - **tags에 프로젝트 경로명 포함**: 예) `/Users/.../studio-app`이면 `studio-app` 태그 추가
   - 하나의 세션이 여러 주제를 다룰 수 있음
   - 같은 주제가 여러 세션에 걸쳐 있으면 하나로 합침
+  - **topic의 details도 동일하게 상세히 작성** — 코드/쿼리/설정값 등 구체적 내용 포함
 
 ### 4. Notion에 기록
 ```bash
