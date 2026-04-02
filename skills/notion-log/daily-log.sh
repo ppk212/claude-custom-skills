@@ -33,10 +33,10 @@ CLAUDE_PATH="/Users/ethan.lee/.nvm/versions/node/v20.19.2/bin/claude"
     exit 0
   fi
 
-  echo "세션 ${SESSION_COUNT}개 발견. Claude Code로 /notion-log 실행..."
+  echo "세션 ${SESSION_COUNT}개 발견. Claude Code로 /hsc:notion-log 실행..."
 
-  # 2. Claude Code CLI로 /notion-log 스킬 실행
-  $CLAUDE_PATH -p "/notion-log $YESTERDAY" --no-input 2>&1
+  # 2. Claude Code CLI로 /hsc:notion-log 스킬 실행
+  $CLAUDE_PATH -p "/hsc:notion-log $YESTERDAY" --no-input 2>&1
 
   echo "=== Daily Log End: $(date) ==="
 } >> "$LOG_FILE" 2>&1
