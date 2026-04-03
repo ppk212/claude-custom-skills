@@ -141,6 +141,16 @@ echo "  ✅ /hsc:notion-log 커맨드 설치"
 cp "$DIGEST_SKILL_DIR/claude-commands/hsc:digest.md" "$CLAUDE_DIR/commands/hsc:digest.md"
 echo "  ✅ /hsc:digest 커맨드 설치"
 
+# help 커맨드
+HELP_SKILL_DIR="$REPO_DIR/skills/help"
+cp "$HELP_SKILL_DIR/claude-commands/hsc:help.md" "$CLAUDE_DIR/commands/hsc:help.md"
+echo "  ✅ /hsc:help 커맨드 설치"
+
+# setting 커맨드
+SETTING_SKILL_DIR="$REPO_DIR/skills/setting"
+cp "$SETTING_SKILL_DIR/claude-commands/hsc:setting.md" "$CLAUDE_DIR/commands/hsc:setting.md"
+echo "  ✅ /hsc:setting 커맨드 설치"
+
 # ============================================================
 # 5. Claude Code Hook 설정
 # ============================================================
