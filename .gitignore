@@ -1,5 +1,6 @@
 node_modules/
 .env
+.claude/
 logs/
 check-db*.js
 run-today.js
