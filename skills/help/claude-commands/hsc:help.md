@@ -73,6 +73,26 @@ Claude Code 세션을 Notion에 기록합니다.
 - `/hsc:digest Prisma` → Prisma 관련 모든 작업 이력 종합
 - `/hsc:digest 인증 시스템` → 인증 관련 작업 내역 문서화
 - `/hsc:digest Kubernetes 배포` → K8s 배포 관련 지식 정리
+
+---
+
+## /hsc:setup-review
+GitHub 레포에 Claude Code Review 워크플로우를 대화형으로 설정합니다.
+
+**동작 순서:**
+1. 프로젝트 경로 확인 (현재 디렉토리 또는 직접 입력)
+2. 프로젝트 분석 (언어/프레임워크 자동 감지, 기존 워크플로우 충돌 확인)
+3. 대화형 설정 (모델, 리뷰 언어, Label 트리거, Sticky Comment 등)
+4. `.github/workflows/claude-code-review.yml` 자동 생성
+5. GitHub Secrets/Variables 설정 안내
+
+**주요 기능:**
+- 프로젝트 언어/프레임워크에 맞춘 리뷰 프롬프트 자동 생성
+- PR 생성 시 자동 리뷰 + Label을 통한 리뷰 재요청 (선택)
+- 7개 언어/프레임워크 지원 + 직접 입력
+
+**활용 예시:**
+- `/hsc:setup-review` → 대화형으로 Claude Code Review 설정
 ```
 
 ---
@@ -134,6 +154,26 @@ Search all past sessions for a specific topic and generate a comprehensive Notio
 - `/hsc:digest Prisma` → Consolidate all Prisma-related work history
 - `/hsc:digest auth system` → Document all authentication work
 - `/hsc:digest Kubernetes deployment` → Organize K8s deployment knowledge
+
+---
+
+## /hsc:setup-review
+Interactively set up Claude Code Review workflow for a GitHub repository.
+
+**How it works:**
+1. Determine project path (current directory or manual input)
+2. Analyze project (auto-detect language/framework, check existing workflows)
+3. Interactive setup (model, review language, label trigger, sticky comment, etc.)
+4. Auto-generate `.github/workflows/claude-code-review.yml`
+5. Guide GitHub Secrets/Variables configuration
+
+**Key features:**
+- Auto-generates review prompts tailored to project language/framework
+- Auto review on PR creation + optional label-based re-review
+- Supports 7 language/framework presets + custom input
+
+**Example:**
+- `/hsc:setup-review` → Interactively set up Claude Code Review
 ```
 
 ---
@@ -195,4 +235,24 @@ Claude CodeセッションをNotionに記録します。
 - `/hsc:digest Prisma` → Prisma関連の全作業履歴を統合
 - `/hsc:digest 認証システム` → 認証関連の作業をドキュメント化
 - `/hsc:digest Kubernetesデプロイ` → K8sデプロイの知識を整理
+
+---
+
+## /hsc:setup-review
+GitHubリポジトリにClaude Code Reviewワークフローを対話形式で設定します。
+
+**動作手順:**
+1. プロジェクトパス確認（カレントディレクトリまたは手動入力）
+2. プロジェクト分析（言語/フレームワーク自動検出、既存ワークフロー競合確認）
+3. 対話形式設定（モデル、レビュー言語、Labelトリガー、Sticky Comment等）
+4. `.github/workflows/claude-code-review.yml` 自動生成
+5. GitHub Secrets/Variables設定ガイド
+
+**主な機能:**
+- プロジェクトの言語/フレームワークに合わせたレビュープロンプト自動生成
+- PR作成時の自動レビュー + Labelによるレビュー再要求（オプション）
+- 7言語/フレームワークプリセット + カスタム入力対応
+
+**使用例:**
+- `/hsc:setup-review` → 対話形式でClaude Code Reviewを設定
 ```

@@ -151,6 +151,11 @@ SETTING_SKILL_DIR="$REPO_DIR/skills/setting"
 cp "$SETTING_SKILL_DIR/claude-commands/hsc:setting.md" "$CLAUDE_DIR/commands/hsc:setting.md"
 echo "  ✅ /hsc:setting 커맨드 설치"
 
+# setup-review 커맨드
+SETUP_REVIEW_SKILL_DIR="$REPO_DIR/skills/setup-review"
+cp "$SETUP_REVIEW_SKILL_DIR/claude-commands/hsc:setup-review.md" "$CLAUDE_DIR/commands/hsc:setup-review.md"
+echo "  ✅ /hsc:setup-review 커맨드 설치"
+
 # ============================================================
 # 5. Claude Code Hook 설정
 # ============================================================
