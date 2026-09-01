@@ -11,7 +11,7 @@ YESTERDAY=$(date -v-1d +%Y-%m-%d)
 LOG_FILE="$LOGGER_DIR/logs/daily-$(date +%Y-%m-%d).log"
 mkdir -p "$LOGGER_DIR/logs"
 
-NODE_PATH="/Users/ethan.lee/.nvm/versions/node/v20.19.2/bin/node"
+NODE_PATH="/Users/ihyeonsu/.nvm/versions/node/v26.3.0/bin/node"
 CLAUDE_PATH="/Users/ethan.lee/.nvm/versions/node/v20.19.2/bin/claude"
 
 {

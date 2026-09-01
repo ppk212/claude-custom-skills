@@ -1,0 +1,66 @@
+{
+  "$comment": "시안 생성 스킬 로스터의 기계 판독본. 사람이 읽는 설명은 skill-roster.md에 있고, 두 파일의 목록은 같아야 한다. doctor.mjs가 이 파일을 읽어 어떤 스킬이 실제로 설치돼 있는지 확인한다.",
+  "samples": [
+    { "n": "01", "dir": "01-design-taste-frontend", "skill": "design-taste-frontend", "note": "anti-slop v2. 브리프에서 방향을 스스로 추론" },
+    { "n": "02", "dir": "02-design-taste-frontend-v1", "skill": "design-taste-frontend-v1", "note": "v1 원본. v2보다 보수적" },
+    { "n": "03", "dir": "03-gpt-taste", "skill": "gpt-taste", "note": "AIDA 구조 + 에디토리얼 타이포 + 스크롤 모션" },
+    { "n": "04", "dir": "04-minimalist-ui", "skill": "minimalist-ui", "note": "웜 모노크롬. 그라디언트·무거운 그림자 금지" },
+    { "n": "05", "dir": "05-industrial-brutalist-ui", "skill": "industrial-brutalist-ui", "note": "스위스 활자 + 터미널. 극단적 타입 대비" },
+    { "n": "06", "dir": "06-high-end-visual-design", "skill": "high-end-visual-design", "note": "고급 에이전시 톤" },
+    { "n": "07", "dir": "07-stitch-design-taste", "skill": "stitch-design-taste", "note": "DESIGN.md를 먼저 뽑고 그걸로 구현", "extraOutputs": ["DESIGN.md"] },
+    { "n": "08", "dir": "08-frontend-design", "skill": "frontend-design", "note": "Anthropic 공식. 남용 폰트 차단", "source": "plugin:claude-plugins-official" },
+    { "n": "09", "dir": "09-interface-design", "skill": "interface-design", "note": "디자인 토큰 일관성 우선", "extraOutputs": ["TOKENS.md"], "source": "plugin:interface-design" },
+    { "n": "10", "dir": "10-image-to-code", "skill": "image-to-code", "note": "Before 스크린샷을 시각 입력으로 받는 유일한 시안", "needs": ["before-screenshots"] },
+    { "n": "11", "dir": "11-claude-design-canvas", "skill": "design", "note": "내장 캔버스 스킬. 시각 언어만 빌리고 파일명 규약은 동일", "source": "builtin" }
+  ],
+  "shared": [
+    { "skill": "redesign-existing-projects", "phase": 1, "note": "현재 사이트 감사" },
+    { "skill": "full-output-enforcement", "phase": 3, "note": "HTML 잘림 방지" },
+    { "skill": "design-token", "phase": 2, "note": "공통 브리프 토큰", "source": "plugin:designer-skills" },
+    { "skill": "typography-scale", "phase": 2, "source": "plugin:designer-skills" },
+    { "skill": "layout-grid", "phase": 2, "source": "plugin:designer-skills" },
+    { "skill": "impeccable", "phase": 5, "note": "안티패턴 감사", "source": "plugin:impeccable" },
+    { "skill": "critique-visual-hierarchy", "phase": 5, "source": "plugin:designer-skills" },
+    { "skill": "critique-typography", "phase": 5, "source": "plugin:designer-skills" },
+    { "skill": "critique-color", "phase": 5, "source": "plugin:designer-skills" },
+    { "skill": "accessibility-audit", "phase": 5, "source": "plugin:designer-skills" }
+  ],
+  "conditional": {
+    "requires": "OPENAI_API_KEY 또는 ~/.gstack/openai.json",
+    "reason": "이미지 생성 호출에 OpenAI 키가 필요하다",
+    "samples": [
+      { "n": "12", "dir": "12-imagegen-frontend-web", "skill": "imagegen-frontend-web" },
+      { "n": "13", "dir": "13-imagegen-frontend-mobile", "skill": "imagegen-frontend-mobile" },
+      { "n": "14", "dir": "14-brandkit", "skill": "brandkit" },
+      { "n": "15", "dir": "15-design-shotgun", "skill": "gstack-design-shotgun" }
+    ]
+  },
+  "sources": {
+    "taste-skill": {
+      "provides": ["design-taste-frontend", "design-taste-frontend-v1", "gpt-taste", "minimalist-ui", "industrial-brutalist-ui", "high-end-visual-design", "stitch-design-taste", "image-to-code", "redesign-existing-projects", "full-output-enforcement", "imagegen-frontend-web", "imagegen-frontend-mobile", "brandkit"],
+      "install": "git clone --depth 1 https://github.com/Leonxlnx/taste-skill && cp -R taste-skill/skills/* ~/.claude/skills/",
+      "hint": "스킬 폴더명은 SKILL.md의 name 필드와 맞춰야 한다"
+    },
+    "claude-plugins-official": {
+      "provides": ["frontend-design"],
+      "install": "claude plugin install frontend-design@claude-plugins-official -s user -y"
+    },
+    "interface-design": {
+      "provides": ["interface-design"],
+      "install": "claude plugin marketplace add Dammyjay93/interface-design && claude plugin install interface-design@interface-design -s user -y"
+    },
+    "impeccable": {
+      "provides": ["impeccable"],
+      "install": "claude plugin marketplace add pbakaus/impeccable && claude plugin install impeccable@impeccable -s user -y"
+    },
+    "designer-skills": {
+      "provides": ["design-token", "typography-scale", "layout-grid", "critique-visual-hierarchy", "critique-typography", "critique-color", "accessibility-audit"],
+      "install": "claude plugin marketplace add Owl-Listener/designer-skills && claude plugin install design-systems@designer-skills ui-design@designer-skills visual-critique@designer-skills -s user -y"
+    },
+    "gstack": {
+      "provides": ["browse 바이너리 (스크린샷 캡처)", "gstack-design-shotgun"],
+      "install": "brew install bun && git clone --depth 1 https://github.com/garrytan/gstack ~/.claude/skills/gstack && (cd ~/.claude/skills/gstack && ./setup --prefix)",
+      "hint": "--prefix 없이 설치하면 /review, /qa 같은 짧은 이름이 기존 커맨드와 충돌한다"
+    }
+  }
+}
