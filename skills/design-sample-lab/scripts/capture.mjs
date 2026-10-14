@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 // Batch screenshot capture for design-sample-lab, driven by the gstack `browse` daemon.
 //
+//   capture.mjs probe   --url <url>          is the URL reachable, or a login wall?
+//   capture.mjs login   --url <url>          hand a visible Chrome window to the user
+//   capture.mjs resume  --url <url>          take back control after login, re-probe
 //   capture.mjs before  --url <url> --out <01-before dir>
 //   capture.mjs samples --dir <02-samples dir>
 //
@@ -199,6 +202,91 @@ function arg(name, fallback) {
   return i !== -1 && process.argv[i + 1] ? process.argv[i + 1] : fallback
 }
 
+// A login wall does not fail a capture — it captures the login page, and every
+// sample then redesigns the login page. `probe` decides up front whether the
+// URL actually landed on the target page.
+const LOGIN_PATH = /\/(log-?in|sign-?in|auth|sso|oauth)(\/|$)/i
+
+function looksLikeLogin(url) {
+  try {
+    return LOGIN_PATH.test(new URL(url).pathname + '/')
+  } catch {
+    return false
+  }
+}
+
+function inspectPage(requested) {
+  const nav = browse(['goto', requested])
+  if (nav === null) return { verdict: 'unreachable', requested }
+  const status = Number(nav.match(/\((\d{3})\)\s*$/)?.[1]) || null
+  // SPAs usually redirect only after their first API call comes back 401.
+  browse(['wait', '--networkidle'], { quiet: true })
+  const final =browse(['url'], { quiet: true }) || requested
+  const title = browse(['js', 'document.title'], { quiet: true }) || ''
+  const hasPassword = browse(['js', "!!document.querySelector('input[type=password]')"], { quiet: true }) === 'true'
+
+  const reasons = []
+  if (status === 401 || status === 403) reasons.push(`HTTP ${status}`)
+  let sameHost = true
+  try {
+    sameHost = new URL(final).host === new URL(requested).host
+  } catch {}
+  if (!sameHost) reasons.push(`다른 호스트로 이동: ${final}`)
+  if (looksLikeLogin(final) && !looksLikeLogin(requested)) reasons.push(`로그인 경로로 이동: ${final}`)
+  if (hasPassword && !looksLikeLogin(requested)) reasons.push('비밀번호 입력란이 있음')
+
+  return { verdict: reasons.length ? 'login-suspected' : 'ok', requested, final, status, title, reasons }
+}
+
+function report(result) {
+  console.log(JSON.stringify(result))
+  if (result.verdict === 'ok') console.log(`probe: OK — ${result.final} (${result.status})`)
+  else if (result.verdict === 'unreachable') console.log(`probe: 접속 실패 — ${result.requested}`)
+  else console.log(`probe: 로그인 필요로 보임 — ${result.reasons.join(' / ')}`)
+}
+
+const EXIT = { ok: 0, unreachable: 1, 'login-suspected': 10 }
+
+function requireUrl(mode) {
+  const url = arg('url')
+  if (!url) {
+    console.error(`capture.mjs ${mode} --url <url>`)
+    process.exit(2)
+  }
+  return url
+}
+
+function probe() {
+  const result = inspectPage(requireUrl('probe'))
+  report(result)
+  process.exit(EXIT[result.verdict])
+}
+
+// Hands the session to a visible Chrome window. The daemon keeps that window
+// as its browser afterwards, so whatever the user logs into is what `before`
+// captures. The window's profile (~/.gstack/chromium-profile) persists, so a
+// later run usually needs only a confirmation, not a fresh login.
+function login() {
+  const url = requireUrl('login')
+  browse(['goto', url], { quiet: true })
+  const out = browse(['handoff', '로그인한 뒤 대상 페이지까지 들어가서 Claude에게 알려주세요'])
+  if (out === null || out.startsWith('ERROR')) {
+    console.error(`FATAL: 브라우저 창을 열지 못했다 — ${out || 'handoff 실패'}`)
+    process.exit(1)
+  }
+  console.log(out.split('\n')[0])
+  console.log('login: 창을 열었다. 사용자가 로그인을 마치면 capture.mjs resume --url <url>')
+}
+
+// Takes control back and re-checks the target URL in the now-logged-in window.
+function resumeAfterLogin() {
+  const url = requireUrl('resume')
+  browse(['resume'], { quiet: true })
+  const result = inspectPage(url)
+  report(result)
+  process.exit(EXIT[result.verdict])
+}
+
 function captureBefore() {
   const url = arg('url')
   const outDir = abs(arg('out', '01-before'))
@@ -302,11 +390,17 @@ function captureSamples() {
 }
 
 const mode = process.argv[2]
-if (mode === 'before') captureBefore()
+if (mode === 'probe') probe()
+else if (mode === 'login') login()
+else if (mode === 'resume') resumeAfterLogin()
+else if (mode === 'before') captureBefore()
 else if (mode === 'samples') captureSamples()
 else if (mode === 'folds') captureFolds()
 else {
-  console.error('usage: capture.mjs before  --url <url> --out <dir>')
+  console.error('usage: capture.mjs probe   --url <url>                  exit 0 ok · 10 로그인 필요 · 1 접속 실패')
+  console.error('       capture.mjs login   --url <url>                  보이는 Chrome 창을 열어 사용자에게 넘긴다')
+  console.error('       capture.mjs resume  --url <url>                  로그인 후 이어받아 다시 probe')
+  console.error('       capture.mjs before  --url <url> --out <dir>')
   console.error('       capture.mjs samples --dir <02-samples dir>   full-page overview (downscaled)')
   console.error('       capture.mjs folds   --dir <02-samples dir>   native-resolution first screen')
   process.exit(2)

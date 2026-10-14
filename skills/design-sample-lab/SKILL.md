@@ -95,10 +95,48 @@ design-samples-stg.example.com-2026-09-01/
 
 ## Phase 1 — Before 캡처와 감사
 
+### 1-0. 접근 확인 (로그인 벽)
+
+로그인이 필요한 URL은 캡처가 실패하지 않는다 — **로그인 화면을 캡처하고**, 시안
+11개가 전부 로그인 페이지 리디자인이 된다. 그래서 캡처 전에 반드시 확인한다.
+
+```bash
+L=~/.claude/skills/design-sample-lab/scripts
+node $L/capture.mjs probe --url "<URL>"
+```
+
+| exit | 뜻 | 대응 |
+|---|---|---|
+| 0 | 대상 페이지에 정상 접근 | 바로 캡처 |
+| 10 | 로그인 필요로 보임 (401/403, 로그인 경로·다른 호스트로 이동, 비밀번호 입력란) | 아래 로그인 절차 |
+| 1 | 접속 실패 | 멈추고 URL·네트워크(VPN 등)를 사용자에게 확인 |
+
+**로그인 절차** — 사용자의 계정 정보를 묻거나 대신 입력하지 않는다. 창만 띄우고 기다린다.
+
+1. `node $L/capture.mjs login --url "<URL>"` — 대상 URL이 열린 Chrome 창이 화면에 뜬다
+2. 사용자에게 이렇게 말하고 **응답을 기다린다**:
+   > 브라우저 창을 열었습니다. 그 창에서 로그인한 뒤 대상 페이지까지 들어가서 "완료"라고 알려주세요.
+3. 사용자가 완료라고 하면 `node $L/capture.mjs resume --url "<URL>"`
+4. exit 0이면 캡처로 진행. 또 10이면 판정 이유(`reasons`)를 보여 주고 2번부터 다시.
+   사용자가 "그 페이지가 맞다"고 하면(예: 비밀번호 변경 화면이 대상) 그대로 진행한다
+
+- 이 절차는 gstack browse가 있을 때만 쓴다. Playwright MCP로 대체 중이면 그 브라우저
+  창에서 사용자에게 로그인을 부탁한 뒤 Playwright로 직접 캡처한다
+- browse 데몬은 **실행 폴더(git 루트 또는 cwd)마다 따로** 뜬다. probe·login·resume·before는
+  모두 같은 폴더에서 실행한다. 또 30분 동안 명령이 없으면 데몬이 꺼져 로그인 상태가
+  사라지므로, 로그인 후에는 바로 캡처한다
+- 로그인 창의 프로필(`~/.gstack/chromium-profile`)은 남는다. 다음 실행에서 또 10이
+  나와도 창을 열면 이미 로그인돼 있어서 사용자는 "완료"만 말하면 되는 경우가 많다
+
+### 1-1. 캡처
+
 ```bash
 node ~/.claude/skills/design-sample-lab/scripts/capture.mjs \
   before --url "<URL>" --out "<RUN>/01-before"
 ```
+
+캡처 후 `desktop-1440.png`를 직접 열어 대상 페이지가 맞는지 한 번 더 본다. probe가
+놓친 로그인 화면·에러 화면이면 1-0의 로그인 절차로 돌아간다.
 
 세 뷰포트 스크린샷과 `audit.json`(실제 렌더된 폰트·색·라운드·그림자·콘솔 에러)이
 생성된다. 그다음 **`redesign-existing-projects` 스킬을 invoke**해서 스크린샷과
