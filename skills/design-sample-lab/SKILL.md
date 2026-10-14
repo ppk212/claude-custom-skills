@@ -224,8 +224,8 @@ font-size 종류 초과를 잡는다. 스크린샷만 봐서는 절대 안 보�
 
 ## Phase 5 — 검증과 정리
 
-1. **스코어카드** — `impeccable`, `critique-visual-hierarchy`, `critique-typography`,
-   `critique-color` 스킬로 시안별 평가, `03-review/scorecard.md`에 표로.
+1. **스코어카드** — `impeccable:impeccable`, `visual-critique:critique-visual-hierarchy`,
+   `visual-critique:critique-typography`, `visual-critique:critique-color` 스킬로 시안별 평가, `03-review/scorecard.md`에 표로.
    열: 시안 / 요구사항 충족(n/총) / 위계 / 타이포 / 컬러 / 모바일 / 접근성 / 총평.
 2. **접근성** — `Agent(subagent_type: "design-review")`로 상위 3개 시안만 WCAG AA
    검증 (전부 돌리면 과하다). `design-review`는 스킬이 아니라 에이전트다.

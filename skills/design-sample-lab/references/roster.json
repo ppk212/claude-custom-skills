@@ -8,22 +8,22 @@
     { "n": "05", "dir": "05-industrial-brutalist-ui", "skill": "industrial-brutalist-ui", "note": "스위스 활자 + 터미널. 극단적 타입 대비" },
     { "n": "06", "dir": "06-high-end-visual-design", "skill": "high-end-visual-design", "note": "고급 에이전시 톤" },
     { "n": "07", "dir": "07-stitch-design-taste", "skill": "stitch-design-taste", "note": "DESIGN.md를 먼저 뽑고 그걸로 구현", "extraOutputs": ["DESIGN.md"] },
-    { "n": "08", "dir": "08-frontend-design", "skill": "frontend-design", "note": "Anthropic 공식. 남용 폰트 차단", "source": "plugin:claude-plugins-official" },
-    { "n": "09", "dir": "09-interface-design", "skill": "interface-design", "note": "디자인 토큰 일관성 우선", "extraOutputs": ["TOKENS.md"], "source": "plugin:interface-design" },
+    { "n": "08", "dir": "08-frontend-design", "skill": "frontend-design:frontend-design", "note": "Anthropic 공식. 남용 폰트 차단", "source": "plugin:claude-plugins-official" },
+    { "n": "09", "dir": "09-interface-design", "skill": "interface-design:interface-design", "note": "디자인 토큰 일관성 우선", "extraOutputs": ["TOKENS.md"], "source": "plugin:interface-design" },
     { "n": "10", "dir": "10-image-to-code", "skill": "image-to-code", "note": "Before 스크린샷을 시각 입력으로 받는 유일한 시안", "needs": ["before-screenshots"] },
     { "n": "11", "dir": "11-claude-design-canvas", "skill": "design", "note": "내장 캔버스 스킬. 시각 언어만 빌리고 파일명 규약은 동일", "source": "builtin" }
   ],
   "shared": [
     { "skill": "redesign-existing-projects", "phase": 1, "note": "현재 사이트 감사" },
     { "skill": "full-output-enforcement", "phase": 3, "note": "HTML 잘림 방지" },
-    { "skill": "design-token", "phase": 2, "note": "공통 브리프 토큰", "source": "plugin:designer-skills" },
-    { "skill": "typography-scale", "phase": 2, "source": "plugin:designer-skills" },
-    { "skill": "layout-grid", "phase": 2, "source": "plugin:designer-skills" },
-    { "skill": "impeccable", "phase": 5, "note": "안티패턴 감사", "source": "plugin:impeccable" },
-    { "skill": "critique-visual-hierarchy", "phase": 5, "source": "plugin:designer-skills" },
-    { "skill": "critique-typography", "phase": 5, "source": "plugin:designer-skills" },
-    { "skill": "critique-color", "phase": 5, "source": "plugin:designer-skills" },
-    { "skill": "accessibility-audit", "phase": 5, "source": "plugin:designer-skills" }
+    { "skill": "design-systems:design-token", "phase": 2, "note": "공통 브리프 토큰", "source": "plugin:designer-skills" },
+    { "skill": "ui-design:typography-scale", "phase": 2, "source": "plugin:designer-skills" },
+    { "skill": "ui-design:layout-grid", "phase": 2, "source": "plugin:designer-skills" },
+    { "skill": "impeccable:impeccable", "phase": 5, "note": "안티패턴 감사", "source": "plugin:impeccable" },
+    { "skill": "visual-critique:critique-visual-hierarchy", "phase": 5, "source": "plugin:designer-skills" },
+    { "skill": "visual-critique:critique-typography", "phase": 5, "source": "plugin:designer-skills" },
+    { "skill": "visual-critique:critique-color", "phase": 5, "source": "plugin:designer-skills" },
+    { "skill": "design-systems:accessibility-audit", "phase": 5, "source": "plugin:designer-skills" }
   ],
   "conditional": {
     "requires": "OPENAI_API_KEY 또는 ~/.gstack/openai.json",
@@ -38,8 +38,8 @@
   "sources": {
     "taste-skill": {
       "provides": ["design-taste-frontend", "design-taste-frontend-v1", "gpt-taste", "minimalist-ui", "industrial-brutalist-ui", "high-end-visual-design", "stitch-design-taste", "image-to-code", "redesign-existing-projects", "full-output-enforcement", "imagegen-frontend-web", "imagegen-frontend-mobile", "brandkit"],
-      "install": "git clone --depth 1 https://github.com/Leonxlnx/taste-skill && cp -R taste-skill/skills/* ~/.claude/skills/",
-      "hint": "스킬 폴더명은 SKILL.md의 name 필드와 맞춰야 한다"
+      "install": "rm -rf /tmp/taste-skill && git clone --depth 1 https://github.com/Leonxlnx/taste-skill /tmp/taste-skill && for d in /tmp/taste-skill/skills/*/; do n=$(sed -n 's/^name: *//p' \"$d/SKILL.md\" | head -1); [ -n \"$n\" ] && cp -R \"$d\" ~/.claude/skills/\"$n\"; done",
+      "hint": "레포 폴더명(brutalist-skill 등)과 스킬 이름이 달라서, SKILL.md의 name 값을 폴더명으로 써서 복사한다. doctor는 폴더명으로 설치 여부를 판단한다"
     },
     "claude-plugins-official": {
       "provides": ["frontend-design"],
@@ -55,11 +55,12 @@
     },
     "designer-skills": {
       "provides": ["design-token", "typography-scale", "layout-grid", "critique-visual-hierarchy", "critique-typography", "critique-color", "accessibility-audit"],
-      "install": "claude plugin marketplace add Owl-Listener/designer-skills && claude plugin install design-systems@designer-skills ui-design@designer-skills visual-critique@designer-skills -s user -y"
+      "install": "claude plugin marketplace add Owl-Listener/designer-skills && claude plugin install design-systems@designer-skills -s user -y && claude plugin install ui-design@designer-skills -s user -y && claude plugin install visual-critique@designer-skills -s user -y",
+      "hint": "claude plugin install은 한 번에 플러그인 하나만 받는다"
     },
     "gstack": {
-      "provides": ["browse 바이너리 (스크린샷 캡처)", "gstack-design-shotgun"],
-      "install": "brew install bun && git clone --depth 1 https://github.com/garrytan/gstack ~/.claude/skills/gstack && (cd ~/.claude/skills/gstack && ./setup --prefix)",
+      "provides": ["browse 바이너리 (스크린샷 캡처)"],
+      "install": "brew install bun && git clone --depth 1 https://github.com/garrytan/gstack ~/.local/share/gstack && (cd ~/.local/share/gstack && bun install && bun build --compile browse/src/cli.ts --outfile browse/dist/browse)",
       "hint": "--prefix 없이 설치하면 /review, /qa 같은 짧은 이름이 기존 커맨드와 충돌한다"
     }
   }

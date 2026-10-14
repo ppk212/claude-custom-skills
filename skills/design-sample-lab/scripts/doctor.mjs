@@ -56,7 +56,9 @@ const cacheDir = join(HOME, '.claude', 'plugins', 'cache')
   }
 })(cacheDir)
 
-function skillState(name, source) {
+function skillState(qualified, source) {
+  // Plugin skills are invoked as "plugin:skill" but sit on disk under the bare name.
+  const name = qualified.split(':').pop()
   if (source === 'builtin') return { ok: true, where: '내장' }
   if (localSkills.has(name)) return { ok: true, where: '~/.claude/skills' }
   if (pluginSkills.has(name)) return { ok: true, where: '플러그인' }
@@ -70,7 +72,13 @@ const core = [
 ]
 
 // --- tier 2: capture -------------------------------------------------------
-const browsePath = process.env.GSTACK_BROWSE || join(HOME, '.claude', 'skills', 'gstack', 'browse', 'dist', 'browse')
+const browsePath =
+  process.env.GSTACK_BROWSE ||
+  [
+    join(HOME, '.local', 'share', 'gstack', 'browse', 'dist', 'browse'),
+    join(HOME, '.claude', 'skills', 'gstack', 'browse', 'dist', 'browse'),
+  ].find(p => existsSync(p)) ||
+  join(HOME, '.local', 'share', 'gstack', 'browse', 'dist', 'browse')
 const browseOk = existsSync(browsePath)
 const capture = [
   { name: 'gstack browse (권장 캡처 경로)', ok: browseOk, fix: ROSTER.sources.gstack.install },

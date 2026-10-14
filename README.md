@@ -188,9 +188,39 @@ node skills/design-sample-lab/scripts/doctor.mjs
 
 설치된 것과 빠진 것을 표로 보여주고, 빠진 것의 설치 명령까지 출력합니다. **전부 없어도 동작합니다** — 있는 스킬만 실행하고, 없는 것은 결과 README에 "미설치로 제외"로 기록됩니다.
 
+처음 설치라면 아래를 한 번에 실행해도 됩니다. 명령은 `roster.json`의 `sources`와 같습니다.
+
+```bash
+# taste-skill — 레포 폴더명과 스킬 이름이 달라 name 값으로 복사한다
+rm -rf /tmp/taste-skill && git clone --depth 1 https://github.com/Leonxlnx/taste-skill /tmp/taste-skill
+for d in /tmp/taste-skill/skills/*/; do
+  n=$(sed -n 's/^name: *//p' "$d/SKILL.md" | head -1)
+  [ -n "$n" ] && cp -R "$d" ~/.claude/skills/"$n"
+done
+
+# 플러그인 — install은 한 번에 하나씩
+claude plugin install frontend-design@claude-plugins-official -s user -y
+claude plugin install playwright@claude-plugins-official -s user -y
+claude plugin marketplace add Dammyjay93/interface-design
+claude plugin install interface-design@interface-design -s user -y
+claude plugin marketplace add pbakaus/impeccable
+claude plugin install impeccable@impeccable -s user -y
+claude plugin marketplace add Owl-Listener/designer-skills
+claude plugin install design-systems@designer-skills -s user -y
+claude plugin install ui-design@designer-skills -s user -y
+claude plugin install visual-critique@designer-skills -s user -y
+
+# 캡처용 browse 바이너리 — ~/.claude/skills 아래에 두거나 ./setup을 돌리면 gstack 스킬 60개가 등록된다
+brew install bun
+git clone --depth 1 https://github.com/garrytan/gstack ~/.local/share/gstack
+(cd ~/.local/share/gstack && bun install && bun build --compile browse/src/cli.ts --outfile browse/dist/browse)
+```
+
+설치 후 **Claude Code를 완전히 종료했다가 다시 켜고** doctor를 다시 돌립니다.
+
 | 계층 | 대상 | 없으면 |
 |---|---|---|
-| 필수 | Node.js 18+ | 실행 불가 |
+| 필수 | Node.js 18+ (`impeccable` 훅까지 쓰려면 22+) | 실행 불가 |
 | 캡처 | [gstack](https://github.com/garrytan/gstack)의 `browse` 바이너리 | Playwright MCP로 대체. 둘 다 없으면 스크린샷 없이 진행 |
 | 캡처 | `sips` (macOS 기본) | 캔버스 썸네일 단계 건너뜀 |
 | 시안 생성 | [taste-skill](https://github.com/Leonxlnx/taste-skill) 8종, 공식 `frontend-design`, `interface-design`, 내장 `design` | 있는 것만 실행 |

@@ -15,7 +15,11 @@ import { homedir, tmpdir } from 'node:os'
 
 const BROWSE =
   process.env.GSTACK_BROWSE ||
-  join(homedir(), '.claude', 'skills', 'gstack', 'browse', 'dist', 'browse')
+  [
+    join(homedir(), '.local', 'share', 'gstack', 'browse', 'dist', 'browse'),
+    join(homedir(), '.claude', 'skills', 'gstack', 'browse', 'dist', 'browse'),
+  ].find(p => existsSync(p)) ||
+  join(homedir(), '.local', 'share', 'gstack', 'browse', 'dist', 'browse')
 
 const VIEWPORTS = {
   desktop: { w: 1440, h: 900 },
