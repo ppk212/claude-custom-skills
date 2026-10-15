@@ -1,11 +1,12 @@
 {
   "hooks": {
-    "Stop": [
+    "SessionStart": [
       {
+        "matcher": "startup",
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/notion-log/stop-hook.sh\"",
+            "command": "command -v node >/dev/null 2>&1 && node \"${CLAUDE_PLUGIN_ROOT}/scripts/reminder.js\" || true",
             "timeout": 10
           }
         ]

@@ -1,9 +1,16 @@
 {
   "name": "hsc",
-  "version": "1.0.0",
-  "description": "/hsc:* 커맨드 모음 — 세션을 Notion에 기록(notion-log), 주제별 종합 문서(digest), 설정(setting), 코드 리뷰 워크플로우 설정(setup-review), 도움말(help)",
-  "author": { "name": "ppk212" },
+  "version": "1.1.0",
+  "description": "/hsc:* 커맨드 — 세션을 Notion에 기록(notion-log), 주제별 종합 문서(digest), 설정(setting), PR 자동 리뷰 워크플로우 생성(setup-review), 도움말(help)",
+  "author": {
+    "name": "ppk212"
+  },
   "repository": "https://github.com/ppk212/claude-custom-skills",
   "license": "MIT",
-  "keywords": ["notion", "slack", "session-log", "code-review"]
+  "keywords": [
+    "notion",
+    "slack",
+    "session-log",
+    "code-review"
+  ]
 }

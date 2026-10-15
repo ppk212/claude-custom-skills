@@ -1,6 +1,12 @@
 {
   "name": "hsc",
   "private": true,
-  "description": "notion-log · digest 스크립트. 외부 의존성 없음 (Node 18+ 내장 fetch 사용)",
-  "type": "module"
+  "description": "hsc 플러그인 스크립트. 외부 의존성 없음 (Node 18+)",
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/hsc.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
 }

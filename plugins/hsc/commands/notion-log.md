@@ -1,80 +1,61 @@
 ---
-description: Claude Code 세션을 Notion에 기록 (오늘 또는 특정 날짜)
+description: 하루 동안의 Claude Code 대화를 모든 프로젝트에서 모아 Notion 일별·주제별 페이지로 기록 (오늘 또는 특정 날짜)
 argument-hint: "[YYYY-MM-DD]"
-allowed-tools: Bash, Read, Write
+allowed-tools: Bash(node:*), Read, Write
 ---
 
-# Notion 세션 로깅
+# Notion 세션 기록
 
-지정된 날짜 (없으면 오늘)의 **모든 Claude Code 세션**을 수집하여 Notion에 기록한다.
+`$ARGUMENTS`가 `YYYY-MM-DD`면 그 날짜, 아니면 오늘(로컬 시간)을 대상으로 한다. 아래에서 `<DATE>`라고 부른다.
 
-- 인자가 없으면: 오늘 날짜
-- 인자가 있으면: 해당 날짜 (예: `/notion-log 2026-03-23`)
+## 1. 대화 수집
 
-대상 날짜를 `$TARGET_DATE`로 지칭한다. 인자(`$ARGUMENTS`)가 YYYY-MM-DD 형식이면 그 값을, 아니면 오늘 날짜를 사용.
-
-## 실행 순서
-
-### 1. 세션 수집
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/notion-log/collect-sessions.js" --date $TARGET_DATE
+node "${CLAUDE_PLUGIN_ROOT}/notion-log/collect-sessions.js" --date <DATE>
 ```
 
-### 2. 세션 데이터 읽기
-수집된 세션 데이터를 읽어서 분석한다.
-```bash
-cat /tmp/notion-sessions-$TARGET_DATE.json
-```
+- `기록할 대화가 없습니다`가 나오면 그대로 알리고 끝낸다.
+- 출력 끝의 `sessions:` 경로를 Read로 읽고, `analysis:` 경로를 기억한다.
+- 비밀값(토큰, 비밀번호 등)은 스크립트가 이미 가렸다. 분석 결과에 원래 값을 되살려 쓰지 않는다.
+- 파일이 크면 offset/limit로 나눠 읽는다. 세션마다 무엇을 했고 결과가 무엇인지만 파악하면 된다.
 
-세션이 0개면 "해당 날짜에 세션이 없습니다"라고 알려주고 종료.
+## 2. 분석 JSON 작성
 
-### 3. 분석 JSON 작성
-수집된 대화를 분석하여 `/tmp/notion-analysis-$TARGET_DATE.json` 파일을 Write 도구로 생성한다.
+`analysis:` 경로에 Write로 아래 형식의 JSON을 쓴다.
 
-JSON 구조:
 ```json
 {
-  "summary": "해당 날짜의 한 줄 제목 (결과 중심)",
-  "details": "마크다운 요약 (## 섹션, - 결과 bullet, (자동) 세부 항목 포함)",
+  "summary": "그날 작업을 결과 중심으로 한 줄",
+  "details": "마크다운 요약",
   "topics": [
-    {
-      "name": "주제명",
-      "tags": ["프로젝트경로명", "기타태그"],
-      "details": "주제별 상세 내용 마크다운"
-    }
+    { "name": "주제명", "tags": ["프로젝트폴더명", "기술태그"], "details": "주제별 마크다운" }
   ]
 }
 ```
 
-#### 분석 규칙
-- **summary**: 해당 날짜 작업의 핵심을 한 줄로 (결과 중심)
-- **details**: 마크다운 형식으로 **상세하게** 작성
-  - `## 제목` 으로 섹션 구분
-  - `- 결과 항목` 으로 메인 bullet (결과 중심)
-  - `  - (자동) 세부 내용` 으로 Claude가 자동 수행한 작업 표시
-  - **코드, SQL, 명령어, 설정값** 등 구체적인 내용이 있으면 반드시 포함
-  - "정리했다", "분석했다"만 쓰지 말고 **무엇을 어떻게 정리/분석했는지** 상세히 기술
-  - 예시:
-    - ❌ "SQL 쿼리 정리"
-    - ✅ "voice_group → voice ID 조회 쿼리 정리:\n  - `SELECT id FROM voice_group WHERE name = 'Play Voice'`\n  - Relations 테이블 통해 voice_id 목록 조회"
-    - ❌ "관계 체인 분석"
-    - ✅ "Voice 엔티티 관계 체인 매핑:\n  - Voice → Style (style.voice_id)\n  - Style → Embedding (embedding.style_id)\n  - Embedding → Source → RecordingSource"
-- **topics**: 세션 내용에서 주제를 추출
-  - **tags에 프로젝트 경로명 포함**: 예) `/Users/.../studio-app`이면 `studio-app` 태그 추가
-  - 하나의 세션이 여러 주제를 다룰 수 있음
-  - 같은 주제가 여러 세션에 걸쳐 있으면 하나로 합침
-  - **topic의 details도 동일하게 상세히 작성** — 코드/쿼리/설정값 등 구체적 내용 포함
+**details 쓰는 법** (Notion 블록으로 바뀐다: `##`/`###` 제목, `-` 목록과 2칸 들여쓴 하위 목록, ``` 코드, `인라인 코드`, **굵게**)
+- `## 섹션`으로 프로젝트나 작업 묶음을 나눈다.
+- `- 결과` 를 메인 항목으로, Claude가 대신 한 일은 하위 항목 `  - (자동) ...` 으로 적는다 (회색으로 표시됨).
+- "정리했다", "분석했다"로 끝내지 말고 무엇을 어떻게 했는지 쓴다. 명령어, SQL, 설정값, 파일 경로처럼 나중에 다시 찾을 구체적인 내용을 넣는다.
+  - ❌ `- SQL 쿼리 정리`
+  - ✅ `- voice_group → voice ID 조회 쿼리 정리` + 하위 항목 `` `SELECT id FROM voice_group WHERE name = 'Play Voice'` ``
 
-### 4. Notion에 기록
+**topics**
+- 세션을 가로질러 같은 주제는 하나로 합친다. 한 세션이 여러 주제를 다룰 수 있다.
+- `tags`에 프로젝트 폴더명(cwd의 마지막 부분)을 넣는다. 같은 이름의 주제 페이지가 이미 있으면 날짜 구분선과 함께 뒤에 덧붙여지므로, 이어지는 작업은 이전과 같은 주제명을 쓴다.
+- topic의 details도 위와 같은 기준으로 구체적으로 쓴다.
+
+## 3. Notion에 기록
+
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/notion-log/log-all-sessions.js" /tmp/notion-sessions-$TARGET_DATE.json /tmp/notion-analysis-$TARGET_DATE.json
+node "${CLAUDE_PLUGIN_ROOT}/notion-log/log-all-sessions.js" --date <DATE>
 ```
 
-이 스크립트는 자동으로:
-- `/tmp/notion-sessions-*.json` (대화 원문)
-- `/tmp/notion-analysis-*.json` (분석 결과)
-두 파일을 모두 읽어서 기록한다.
+- 일별 페이지: 요약 + "대화 기록" 하위 페이지. 같은 날짜를 다시 실행하면 새로 작성된다.
+- 주제별 페이지: 없으면 만들고, 있으면 덧붙인다.
+- Slack Webhook이 설정돼 있으면 알림을 보낸다.
+- 성공하면 작업 파일(대화 원문)은 지워진다.
 
-결과:
-- **일별 페이지**: 요약 details + 대화 기록 하위 페이지
-- **주제별 페이지**: 주제별 상세 + 프로젝트 경로 태그
+`설정이 없습니다`로 끝나면 `/hsc:setting`을 안내한다. 그 밖의 오류는 메시지를 그대로 전하고, 분석 JSON은 남아 있으니 원인을 고친 뒤 3단계만 다시 실행하면 된다고 알린다.
+
+끝나면 기록한 세션·대화 수, 주제 목록, 출력된 Notion 링크를 짧게 보고한다.

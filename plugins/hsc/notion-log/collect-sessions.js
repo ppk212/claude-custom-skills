@@ -1,161 +1,43 @@
-import "../lib/env-notion-log.js";
-import { readFileSync, readdirSync, statSync, writeFileSync } from "fs";
-import { join, basename } from "path";
-import { execFileSync } from "child_process";
+// 지정한 날짜(로컬 기준)에 나눈 대화를 모든 프로젝트에서 모아 작업 파일로 저장한다.
+//   node collect-sessions.js [--date YYYY-MM-DD]
+// 출력 마지막 줄들에 sessions 파일과, Claude가 써야 할 analysis 파일 경로를 알려준다.
+import { writeFileSync } from "fs";
+import { getArg, workPath } from "../lib/common.js";
+import { mask } from "../lib/mask.js";
+import { listSessionFiles, localDate, projectName, readConversations, startOfLocalDay } from "../lib/sessions.js";
 
-const CLAUDE_DIR = join(process.env.HOME, ".claude");
-const PROJECTS_DIR = join(CLAUDE_DIR, "projects");
-
-// --date YYYY-MM-DD 옵션 지원
-const dateArgIdx = process.argv.indexOf("--date");
-const TARGET_DATE =
-  dateArgIdx !== -1 && process.argv[dateArgIdx + 1]
-    ? process.argv[dateArgIdx + 1]
-    : new Date().toISOString().split("T")[0];
-
-// --- 오늘 날짜의 모든 세션 JSONL 파일 찾기 ---
-
-function findTodaySessionFiles() {
-  const sessions = [];
-  const projectDirs = readdirSync(PROJECTS_DIR);
-
-  for (const projDir of projectDirs) {
-    const projPath = join(PROJECTS_DIR, projDir);
-    if (!statSync(projPath).isDirectory()) continue;
-
-    // 프로젝트 경로 복원: -Users-ethan-lee-... → /Users/ethan.lee/...
-    const cwd = projDir.replace(/-/g, "/");
-
-    const files = readdirSync(projPath).filter((f) => f.endsWith(".jsonl"));
-    for (const file of files) {
-      const filePath = join(projPath, file);
-      const stat = statSync(filePath);
-      const modDate = stat.mtime.toISOString().split("T")[0];
-
-      if (modDate === TARGET_DATE) {
-        sessions.push({ filePath, cwd, sessionId: file.replace(".jsonl", "") });
-      }
-    }
-  }
-
-  return sessions;
+const date = getArg("--date", localDate());
+if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+  console.error("Usage: node collect-sessions.js [--date YYYY-MM-DD]");
+  process.exit(1);
 }
 
-// --- JSONL에서 user/assistant 대화 추출 ---
-
-function parseSession(filePath) {
-  const lines = readFileSync(filePath, "utf-8").trim().split("\n");
-  const conversations = [];
-  let sessionCwd = null;
-  let sessionTimestamp = null;
-
-  // user → assistant 페어 만들기
-  let pendingUser = null;
-
-  for (const line of lines) {
-    try {
-      const entry = JSON.parse(line);
-
-      // cwd 추출 (첫 번째 것 사용)
-      if (!sessionCwd && entry.cwd) {
-        sessionCwd = entry.cwd;
-      }
-      if (!sessionTimestamp && entry.timestamp) {
-        sessionTimestamp = entry.timestamp;
-      }
-
-      if (entry.type === "user" && entry.message?.content) {
-        const content = entry.message.content;
-        // content가 string이면 그대로, array면 text만 추출
-        let text;
-        if (typeof content === "string") {
-          text = content;
-        } else if (Array.isArray(content)) {
-          text = content
-            .filter((c) => c.type === "text")
-            .map((c) => c.text)
-            .join("\n");
-        }
-        if (text && text.trim()) {
-          // system-reminder, command 태그 제거
-          text = text.replace(/<system-reminder>[\s\S]*?<\/system-reminder>/g, "").trim();
-          text = text.replace(/<command-message>[\s\S]*?<\/command-message>/g, "").trim();
-          text = text.replace(/<command-name>[\s\S]*?<\/command-name>/g, "").trim();
-          if (text) pendingUser = text;
-        }
-      }
-
-      if (entry.type === "assistant" && entry.message?.content && pendingUser) {
-        const content = entry.message.content;
-        let texts = [];
-        if (Array.isArray(content)) {
-          texts = content
-            .filter((c) => c.type === "text")
-            .map((c) => c.text);
-        }
-        const assistantText = texts.join("\n").trim();
-        if (assistantText) {
-          conversations.push({
-            user: pendingUser,
-            assistant: assistantText,
-          });
-          pendingUser = null;
-        }
-      }
-    } catch (e) {
-      // skip invalid lines
-    }
-  }
-
-  return { conversations, cwd: sessionCwd, timestamp: sessionTimestamp };
-}
-
-// --- 메인 ---
-
-const sessionFiles = findTodaySessionFiles();
-console.log(`📋 오늘(${TARGET_DATE}) 세션 ${sessionFiles.length}개 발견`);
-
-const allSessions = [];
-
-for (const sf of sessionFiles) {
-  // subagent 세션은 건너뛰기
-  if (sf.filePath.includes("/subagents/")) continue;
-
-  const parsed = parseSession(sf.filePath);
-  if (parsed.conversations.length === 0) continue;
-
-  allSessions.push({
-    sessionId: sf.sessionId,
-    cwd: parsed.cwd || sf.cwd,
-    timestamp: parsed.timestamp,
-    conversations: parsed.conversations,
+// 그날 이후에 수정된 파일만 열어 본다. 날짜를 넘겨 이어진 세션도 그날 대화만 골라낸다.
+const files = listSessionFiles({ modifiedSince: startOfLocalDay(date) });
+const sessions = [];
+for (const f of files) {
+  const { cwd, conversations } = readConversations(f.filePath, { date });
+  if (!conversations.length) continue;
+  sessions.push({
+    sessionId: f.sessionId,
+    cwd,
+    startedAt: conversations[0].at,
+    conversationCount: conversations.length,
+    conversations: conversations.map((c) => ({ user: mask(c.user), assistant: mask(c.assistant), at: c.at })),
   });
-
-  console.log(
-    `  📝 ${sf.sessionId.slice(0, 8)}... (${parsed.cwd || sf.cwd}) — ${parsed.conversations.length}개 대화`
-  );
 }
+sessions.sort((a, b) => (a.startedAt || "").localeCompare(b.startedAt || ""));
 
-if (allSessions.length === 0) {
-  console.log("오늘 기록할 세션이 없습니다.");
+const total = sessions.reduce((n, s) => n + s.conversationCount, 0);
+console.log(`📋 ${date}: 세션 ${sessions.length}개, 대화 ${total}개`);
+for (const s of sessions) console.log(`  📝 ${s.sessionId.slice(0, 8)} ${projectName(s.cwd)} — ${s.conversationCount}개`);
+
+if (!sessions.length) {
+  console.log("기록할 대화가 없습니다.");
   process.exit(0);
 }
 
-// 시간순 정렬
-allSessions.sort((a, b) => (a.timestamp || "").localeCompare(b.timestamp || ""));
-
-// JSON 출력 (log-from-file.js에서 사용할 수 있는 포맷)
-const output = {
-  date: TARGET_DATE,
-  sessions: allSessions.map((s) => ({
-    sessionId: s.sessionId,
-    cwd: s.cwd,
-    conversationCount: s.conversations.length,
-    conversations: s.conversations,
-  })),
-};
-
-const outputPath = `/tmp/notion-sessions-${TARGET_DATE}.json`;
-writeFileSync(outputPath, JSON.stringify(output, null, 2));
-console.log(`\n💾 세션 데이터 저장: ${outputPath}`);
-console.log(`총 ${allSessions.reduce((sum, s) => sum + s.conversations.length, 0)}개 대화`);
+const sessionsPath = workPath(`notion-sessions-${date}.json`);
+writeFileSync(sessionsPath, JSON.stringify({ date, sessions }, null, 2), { mode: 0o600 });
+console.log(`\nsessions: ${sessionsPath}`);
+console.log(`analysis: ${workPath(`notion-analysis-${date}.json`)}`);

@@ -55,7 +55,7 @@ cd claude-custom-skills
 
 ### Notion 설정 (`/hsc:notion-log`, `/hsc:digest`)
 
-설치 후 Claude Code에서 `/hsc:setting`을 실행합니다. 값은 플러그인 밖인 `~/.claude-notion-logger/.env`, `~/.claude-digest/.env`에 저장돼서 플러그인을 업데이트해도 남습니다. 설정하지 않으면 이 두 커맨드만 동작하지 않고 나머지는 그대로 씁니다.
+설치 후 Claude Code에서 `/hsc:setting`을 실행합니다. 값은 플러그인 밖인 `~/.config/hsc/.env`(권한 600)에 저장돼서 플러그인을 업데이트해도 남고, 대화에는 가려진 값만 보입니다. 키를 채팅에 붙여 넣기 싫으면 터미널에서 `node plugins/hsc/scripts/config.js prompt`로 직접 입력할 수 있습니다. 예전 위치(`~/.claude-notion-logger/.env`, `~/.claude-digest/.env`)의 값도 계속 읽습니다. 설정하지 않으면 이 두 커맨드만 동작하지 않고 나머지는 그대로 씁니다.
 
 | 입력값 | 없으면 못 쓰는 것 |
 |---|---|
@@ -64,7 +64,7 @@ cd claude-custom-skills
 | Digest DB ID | `/hsc:digest` |
 | Slack Webhook URL | 알림만 안 감 (기록 자체는 정상) |
 
-세션 종료 시 기록 리마인더(Stop hook)는 Notion 키가 있을 때만 동작합니다. 매일 자정 자동 수집(macOS launchd)은 `/hsc:setting` 마지막 단계에서 켜거나, 직접 `bash plugins/hsc/scripts/schedule.sh install|uninstall|status`로 관리합니다.
+Notion 설정이 있고 자동 수집을 켜지 않았다면, 어제 대화를 아직 기록하지 않은 날 세션 시작 시 한 줄로 알려 줍니다(하루 한 번, `NOTION_LOG_REMINDER=off`로 끔). 매일 자정 자동 수집(macOS launchd)은 `/hsc:setting` 마지막 단계에서 켜거나, 직접 `bash plugins/hsc/scripts/schedule.sh install|uninstall|status`로 관리합니다.
 
 ## 스킬 목록
 
@@ -77,7 +77,7 @@ Claude Code 세션 내용을 Notion에 자동 기록하고 Slack으로 알림을
 | 구분 | 설명 |
 |------|------|
 | 커맨드 | `/hsc:notion-log` (`hsc` 플러그인) |
-| Stop Hook | 세션 종료 시 로깅 리마인더 |
+| SessionStart Hook | 어제 기록이 없으면 하루 한 번 한 줄 알림 |
 | Node.js 스크립트 | Notion REST API + Slack Webhook |
 | launchd (선택) | 매일 자정 어제 세션 자동 수집 — `scripts/schedule.sh` |
 
@@ -89,7 +89,9 @@ Claude Code 세션 내용을 Notion에 자동 기록하고 Slack으로 알림을
 ```
 
 **기능:**
-- 모든 프로젝트의 세션 자동 수집 (`~/.claude/projects/` JSONL 파싱)
+- 모든 프로젝트의 세션 수집 (`~/.claude/projects/` JSONL). 날짜는 로컬 시간 기준이고, 날짜를 넘겨 이어진 세션은 그날 대화만 고른다
+- 한 질문에 대한 Claude 답변 조각을 모두 이어 붙여 최종 정리까지 담는다
+- 보내기 전에 토큰·키·비밀번호 같은 값을 가린다. 대화 원문이 담긴 작업 파일은 사용자 전용 임시 폴더에 두고 기록이 끝나면 지운다
 - 일별 페이지: 결과 중심 요약 + `(자동)` 태그로 Claude 작업 구분
 - 대화 기록 하위 페이지: 사용자 메시지 원문 보존, 세션별 실행 경로 구분
 - 주제별 페이지: 프로젝트 경로 태그, 날짜별 append
@@ -119,20 +121,27 @@ Claude Code 세션 내용을 Notion에 자동 기록하고 Slack으로 알림을
 plugins/hsc/
 ├── .claude-plugin/plugin.json
 ├── commands/                 # help · setting · setup-review · notion-log · digest → /hsc:*
-├── hooks/hooks.json          # Stop hook (Notion 키가 있을 때만 동작)
-├── lib/env.js                # ~/.claude-<이름>/.env 로더 (외부 의존성 없음)
-├── scripts/schedule.sh       # launchd 자동 수집 등록·해제
+├── hooks/hooks.json          # SessionStart: 어제 기록 알림
+├── lib/
+│   ├── config.js             # ~/.config/hsc/.env 읽기·쓰기, 기능별 필수 키
+│   ├── sessions.js           # 세션 JSONL → 질문·답변 쌍 (notion-log, digest 공용)
+│   ├── notion.js             # Notion 클라이언트: 재시도, 100블록 분할, 페이지네이션
+│   ├── markdown.js           # 마크다운 → Notion 블록
+│   ├── mask.js               # 비밀값 가리기
+│   └── common.js             # 작업 폴더, 인자, Slack
 ├── notion-log/
-│   ├── .env.example
-│   ├── collect-sessions.js   # 전체 프로젝트 세션 수집
-│   ├── log-all-sessions.js   # Notion + Slack 기록 (메인)
-│   ├── index.js              # 단일 세션 로깅
-│   ├── log-from-file.js      # JSON 파일 기반 실행
-│   └── stop-hook.sh          # 세션 종료 리마인더
-└── digest/
-    ├── .env.example
-    ├── search-sessions.js    # 전체 세션 키워드 검색
-    └── digest-to-notion.js   # Notion 종합 문서 생성
+│   ├── collect-sessions.js   # 날짜별 대화 수집
+│   └── log-all-sessions.js   # Notion 기록 + Slack 알림
+├── digest/
+│   ├── search-sessions.js    # 키워드 검색 (관련도 상위 N개)
+│   └── digest-to-notion.js   # 종합 문서 기록
+├── scripts/
+│   ├── config.js             # 설정 status · set · test · prompt
+│   ├── reminder.js           # SessionStart 알림
+│   ├── schedule.sh           # launchd 자동 수집 등록·해제
+│   └── review-workflow.js    # setup-review용 GitHub Actions 워크플로우 생성
+├── references/review-prompts.md  # 스택별 리뷰 프롬프트
+└── test/hsc.test.js          # node --test (가짜 Notion 서버 사용)
 ```
 
 ### `/hsc:digest`
@@ -390,8 +399,12 @@ python3 plugins/skill-cleanup/skills/skill-cleanup/scripts/skillctl.py config en
 bash plugins/hsc/scripts/schedule.sh status
 bash plugins/hsc/scripts/schedule.sh uninstall
 
-# 실행 로그 확인
-cat ~/.claude-notion-logger/logs/launchd-stdout.log
+# 자동 수집 실행 로그
+ls ~/.config/hsc/logs/
+
+# hsc 설정 상태 / 테스트
+node plugins/hsc/scripts/config.js status
+node --test plugins/hsc/test/hsc.test.js
 
 ```
 

@@ -71,7 +71,7 @@ if [ ${#LEGACY[@]} -gt 0 ]; then
     case "${e%%|*}" in
       cmd)  echo "  - 커맨드 복사본 삭제     ${e#*|}" ;;
       link) echo "  - 스킬 심링크 삭제       ${e#*|}" ;;
-      home) echo "  - 심링크를 설정 폴더로   ${e#*|}  (.env는 그대로 옮김)" ;;
+      home) echo "  - 심링크를 설정 폴더로   ${e#*|}  (.env는 그대로 옮김, hsc가 계속 읽음)" ;;
       hook) echo "  - settings.json에서 이 레포의 SessionStart/Stop hook 제거 (백업 생성)" ;;
     esac
   done
@@ -118,9 +118,10 @@ PY
   echo ""
 fi
 
-# 예전 launchd 등록은 옮겨진 daily-log.sh를 가리키므로 새 실행 스크립트로 다시 건다
+# 예전 launchd 등록은 옮겨진 daily-log.sh를 가리키므로 새 실행 스크립트(~/.config/hsc)로 다시 건다
 REREG_SCHEDULE=false
-if [ -f "$HOME/Library/LaunchAgents/com.claude.notion-logger.plist" ] && [ ! -f "$HOME/.claude-notion-logger/daily-log.sh" ]; then
+PLIST="$HOME/Library/LaunchAgents/com.claude.notion-logger.plist"
+if [ -f "$PLIST" ] && ! grep -q "/.config/hsc/daily-log.sh" "$PLIST"; then
   REREG_SCHEDULE=true
 fi
 
