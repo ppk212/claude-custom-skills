@@ -157,7 +157,11 @@ fi
 echo ""
 
 for p in $PLUGINS; do
-  if claude plugin install "$p@$MARKET" -s user >/dev/null 2>&1; then
+  # install은 이미 설치된 플러그인을 새 버전으로 올리지 않으므로 설치돼 있으면 update
+  if claude plugin list 2>/dev/null | grep -q "$p@$MARKET"; then
+    claude plugin update "$p@$MARKET" >/dev/null 2>&1 || true
+    echo "  ✅ $p $(claude plugin list 2>/dev/null | grep -A1 "$p@$MARKET" | sed -n 's/.*Version: //p')"
+  elif claude plugin install "$p@$MARKET" -s user >/dev/null 2>&1; then
     echo "  ✅ $p"
   else
     echo "  ⚠️  $p 설치 실패 — Claude Code에서 /plugin install $p@$MARKET 로 다시 시도하세요"
