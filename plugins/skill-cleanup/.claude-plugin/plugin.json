@@ -1,0 +1,9 @@
+{
+  "name": "skill-cleanup",
+  "version": "1.0.0",
+  "description": "안 쓰는·겹치는·낡은 스킬을 세션 기록으로 찾아 되돌릴 수 있게 정리하고, 주기마다 한 줄로 알려 준다",
+  "author": { "name": "ppk212" },
+  "repository": "https://github.com/ppk212/claude-custom-skills",
+  "license": "MIT",
+  "keywords": ["skills", "cleanup", "context"]
+}

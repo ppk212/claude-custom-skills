@@ -1,0 +1,9 @@
+{
+  "name": "design-sample-lab",
+  "version": "1.0.0",
+  "description": "라이브 URL과 요구사항 md로, 설치된 디자인 스킬 전부를 돌려 리디자인 시안과 비교 보드를 만든다",
+  "author": { "name": "ppk212" },
+  "repository": "https://github.com/ppk212/claude-custom-skills",
+  "license": "MIT",
+  "keywords": ["design", "redesign", "frontend"]
+}

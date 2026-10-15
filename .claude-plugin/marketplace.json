@@ -8,6 +8,21 @@
   },
   "plugins": [
     {
+      "name": "hsc",
+      "source": "./plugins/hsc",
+      "description": "/hsc:* 커맨드 — Notion 세션 기록, 주제별 종합 문서, 설정, 코드 리뷰 워크플로우 설정, 도움말"
+    },
+    {
+      "name": "skill-cleanup",
+      "source": "./plugins/skill-cleanup",
+      "description": "안 쓰는·겹치는·낡은 스킬을 찾아 되돌릴 수 있게 정리"
+    },
+    {
+      "name": "design-sample-lab",
+      "source": "./plugins/design-sample-lab",
+      "description": "URL + 요구사항 md로 설치된 디자인 스킬 전부의 리디자인 시안 생성"
+    },
+    {
       "name": "find-automation",
       "source": "./plugins/find-automation",
       "description": "과거 세션에서 반복 작업을 찾아 스킬·hook·스크립트로 자동화하고, 2주마다 한 번 제안한다"
