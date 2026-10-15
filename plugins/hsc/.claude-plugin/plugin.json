@@ -1,7 +1,7 @@
 {
   "name": "hsc",
-  "version": "1.1.0",
-  "description": "/hsc:* 커맨드 — 세션을 Notion에 기록(notion-log), 주제별 종합 문서(digest), PR 자동 리뷰 워크플로우 생성(setup-review), 도움말(help). Notion 설정은 /plugin → hsc → Configure options",
+  "version": "2.0.0",
+  "description": "개인 워크플로우 모음 — /hsc:notion-log·digest(Notion 기록), /hsc:setup-review(PR 자동 리뷰), /hsc:find-automation(반복 작업 자동화), /hsc:skill-cleanup(스킬 정리), /hsc:design-sample-lab(리디자인 시안), /hsc:help",
   "author": {
     "name": "ppk212"
   },
@@ -9,9 +9,11 @@
   "license": "MIT",
   "keywords": [
     "notion",
-    "slack",
     "session-log",
-    "code-review"
+    "code-review",
+    "automation",
+    "skills",
+    "design"
   ],
   "userConfig": {
     "notion_api_key": {

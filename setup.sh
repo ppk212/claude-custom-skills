@@ -2,13 +2,14 @@
 # ============================================================
 # Claude Custom Skills — 플러그인 일괄 설치
 #
-#   ./setup.sh             마켓플레이스(GitHub) 등록 + 플러그인 4종 설치 + 예전 방식 설치 정리
+#   ./setup.sh             마켓플레이스(GitHub) 등록 + hsc 플러그인 설치 + 예전 방식 설치 정리
+#   ./setup.sh --yes       정리할 항목을 묻지 않고 진행 (Claude Code의 ! 처럼 입력을 받을 수 없을 때)
 #   ./setup.sh --local     GitHub 대신 이 clone 폴더를 마켓플레이스로 등록 (레포 수정 테스트용)
-#   ./setup.sh --uninstall 플러그인 4종 제거 (설정 폴더 ~/.claude-notion-logger 등은 남김)
+#   ./setup.sh --uninstall hsc 플러그인 제거
 #
 # Claude Code 안에서 직접 해도 된다:
 #   /plugin marketplace add ppk212/claude-custom-skills
-#   /plugin install hsc@hsc   (skill-cleanup@hsc, design-sample-lab@hsc, find-automation@hsc)
+#   /plugin install hsc@hsc
 # ============================================================
 set -e
 
@@ -16,14 +17,18 @@ REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
 CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 MARKET="hsc"
 SOURCE="ppk212/claude-custom-skills"
-PLUGINS="hsc skill-cleanup design-sample-lab find-automation"
+PLUGINS="hsc"
+# 예전에 따로 배포하던 플러그인. 지금은 모두 hsc 안에 들어 있다
+OLD_PLUGINS="skill-cleanup design-sample-lab find-automation"
+YES=false
 MODE="install"
 
 for a in "$@"; do
   case "$a" in
     --local) SOURCE="$REPO_DIR" ;;
     --uninstall) MODE="uninstall" ;;
-    -h|--help) sed -n '2,11p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -y|--yes) YES=true ;;
+    -h|--help) sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "알 수 없는 옵션: $a"; exit 2 ;;
   esac
 done
@@ -31,7 +36,7 @@ done
 command -v claude >/dev/null || { echo "❌ claude CLI가 필요합니다: https://docs.claude.com/claude-code"; exit 1; }
 
 if [ "$MODE" = uninstall ]; then
-  for p in $PLUGINS; do
+  for p in $PLUGINS $OLD_PLUGINS; do
     if claude plugin uninstall "$p@$MARKET" >/dev/null 2>&1; then echo "  🗑  $p"; fi
   done
   exit 0
@@ -59,6 +64,10 @@ for n in notion-logger digest; do
   L="$HOME/.claude-$n"
   [ -L "$L" ] && LEGACY+=("home|$L")
 done
+INSTALLED=$(claude plugin list 2>/dev/null || true)
+for p in $OLD_PLUGINS; do
+  echo "$INSTALLED" | grep -q "$p@$MARKET" && LEGACY+=("plugin|$p@$MARKET")
+done
 if [ -f "$CLAUDE_DIR/settings.json" ] && grep -qE 'skill-cleanup/scripts/skillctl.py|claude-notion-logger/stop-hook.sh' "$CLAUDE_DIR/settings.json"; then
   LEGACY+=("hook|$CLAUDE_DIR/settings.json")
 fi
@@ -71,14 +80,23 @@ if [ ${#LEGACY[@]} -gt 0 ]; then
       link) echo "  - 스킬 심링크 삭제       ${e#*|}" ;;
       home) echo "  - 심링크를 설정 폴더로   ${e#*|}  (.env는 그대로 옮김, hsc가 계속 읽음)" ;;
       hook) echo "  - settings.json에서 이 레포의 SessionStart/Stop hook 제거 (백업 생성)" ;;
+      plugin) echo "  - 개별 플러그인 제거     ${e#*|}  (hsc에 포함됨)" ;;
     esac
   done
-  read -p "  진행할까요? (y/n): " OK || true
+  if [ "$YES" = true ]; then
+    OK=y
+  elif [ -t 0 ]; then
+    read -p "  진행할까요? (y/n): " OK || true
+  else
+    OK=n
+    echo "  ℹ️  입력을 받을 수 없는 환경입니다. 정리하려면 ./setup.sh --yes 로 다시 실행하세요."
+  fi
   if [ "$OK" = y ]; then
     for e in "${LEGACY[@]}"; do
       t="${e#*|}"
       case "${e%%|*}" in
         cmd|link) rm "$t" ;;
+        plugin) claude plugin uninstall "$t" >/dev/null 2>&1 || echo "  ⚠️  $t 제거 실패 — /plugin 에서 직접 제거하세요" ;;
         home)
           src="$(readlink "$t")"; rm "$t"; mkdir -p "$t/logs"
           if [ -f "$src/.env" ]; then cp "$src/.env" "$t/.env"; chmod 600 "$t/.env"; fi
@@ -164,11 +182,10 @@ cat <<EOF
   /hsc:help                       전체 안내
   Notion 설정 (notion-log, digest)  /plugin → Installed → hsc → Configure options
   /hsc:setup-review               GitHub Code Review 워크플로우 설정
-  /skill-cleanup                  안 쓰는·겹치는 스킬 정리
-  /design-sample-lab <URL> <md>   리디자인 시안 일괄 생성
-  /find-automation                반복 작업 찾아 자동화
+  /hsc:find-automation            반복 작업 찾아 자동화
+  /hsc:skill-cleanup              안 쓰는·겹치는 스킬 정리
+  /hsc:design-sample-lab <URL> <md>  리디자인 시안 일괄 생성
 
-업데이트:   claude plugin marketplace update $MARKET 후 claude plugin update <플러그인>@$MARKET
-일부만 끄기: Claude Code에서 /plugin → 해당 플러그인 disable
+업데이트:   claude plugin marketplace update $MARKET && claude plugin update hsc@$MARKET
 ============================================================
 EOF

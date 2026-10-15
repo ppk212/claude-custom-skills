@@ -4,14 +4,18 @@ Claude Code에서 사용하는 커스텀 스킬 모음. 세션 자동 기록, �
 
 ## 설치
 
-이 레포는 Claude Code **플러그인 마켓플레이스**입니다. 플러그인 4개가 들어 있고, 한 번에 설치하거나 필요한 것만 골라 설치할 수 있습니다.
+이 레포는 Claude Code **플러그인 마켓플레이스**이고, 모든 기능이 `hsc` 플러그인 하나에 들어 있습니다. 설치하면 전부 `/hsc:<이름>`으로 씁니다.
 
-| 플러그인 | 들어 있는 것 | 필요한 것 |
+| 실행 | 하는 일 | 필요한 것 |
 |---|---|---|
-| `hsc` | `/hsc:help`, `/hsc:setup-review`, `/hsc:notion-log`, `/hsc:digest` | Node.js 18+ (notion-log·digest), Notion 키 |
-| `skill-cleanup` | `/skill-cleanup` + 세션 시작 알림 hook | python3 |
-| `design-sample-lab` | `/design-sample-lab` | Node.js 18+, 디자인 스킬들 (아래 참고) |
-| `find-automation` | `/find-automation` + 세션 시작 제안·반복 표현 힌트 hook | python3 |
+| `/hsc:notion-log`, `/hsc:digest` | 세션을 Notion에 기록, 주제별 종합 문서 | Node.js 18+, Notion 키 (설정 창) |
+| `/hsc:setup-review` | GitHub PR 자동 리뷰 워크플로우 생성 | — |
+| `/hsc:find-automation` | 반복 작업을 찾아 자동화 + 2주마다 제안 | python3 |
+| `/hsc:skill-cleanup` | 안 쓰는·겹치는 스킬 정리 + 주기 알림 | python3 |
+| `/hsc:design-sample-lab` | 리디자인 시안 일괄 생성 | Node.js 18+, 디자인 스킬들 (아래 참고) |
+| `/hsc:help` | 전체 안내 (ko/en/jp) | — |
+
+스킬(`find-automation`, `skill-cleanup`, `design-sample-lab`)은 이름을 부르지 않아도 "자동화할 거 찾아줘", "스킬이 너무 많아", "시안 뽑아줘" 같은 말에 자동으로 불립니다.
 
 **한 번에 설치 (터미널):**
 
@@ -21,26 +25,22 @@ cd claude-custom-skills
 ./setup.sh
 ```
 
-`setup.sh`는 마켓플레이스를 등록하고 플러그인 4개를 설치합니다. 예전 방식으로 설치한 흔적(`~/.claude/commands/hsc:*.md` 복사본, `~/.claude/skills` 심링크, settings.json에 직접 넣은 hook)이 있으면 목록을 보여 주고 확인을 받은 뒤 정리합니다. 다시 실행해도 안전합니다.
+`setup.sh`는 마켓플레이스를 등록하고 `hsc`를 설치합니다. 예전 방식으로 설치한 흔적(`~/.claude/commands/hsc:*.md` 복사본, `~/.claude/skills` 심링크, settings.json에 직접 넣은 hook, 따로 배포하던 `skill-cleanup@hsc` 등 개별 플러그인)이 있으면 목록을 보여 주고 확인을 받은 뒤 정리합니다. Claude Code의 `!`처럼 입력을 받을 수 없는 곳에서는 `./setup.sh --yes`로 실행합니다. 다시 실행해도 안전합니다.
 
 **Claude Code 안에서 설치 (clone 불필요):**
 
 ```
 /plugin marketplace add ppk212/claude-custom-skills
 /plugin install hsc@hsc
-/plugin install skill-cleanup@hsc
-/plugin install design-sample-lab@hsc
-/plugin install find-automation@hsc
 ```
 
 설치 후 Claude Code를 재시작하면 적용됩니다.
 
 | 하고 싶은 것 | 명령 |
 |---|---|
-| 업데이트 | `/plugin marketplace update hsc` 후 `/plugin` 에서 업데이트 (또는 `claude plugin update <이름>@hsc`) |
-| 일부만 끄기 | `/plugin` → 해당 플러그인 disable |
-| 전부 제거 | `./setup.sh --uninstall` |
-| 레포 수정분 바로 테스트 | `./setup.sh --local` (GitHub 대신 clone 폴더를 마켓플레이스로 등록) 또는 `claude --plugin-dir=plugins/<이름>` |
+| 업데이트 | `/plugin` → Marketplaces → hsc → Update marketplace (또는 셸에서 `claude plugin update hsc@hsc`) |
+| 제거 | `./setup.sh --uninstall` |
+| 레포 수정분 바로 테스트 | `./setup.sh --local` (GitHub 대신 clone 폴더를 마켓플레이스로 등록) 또는 `claude --plugin-dir=plugins/hsc` |
 
 **팀 레포에서 자동으로 권하기:** 그 레포의 `.claude/settings.json`에 아래를 넣으면, 팀원이 그 레포에서 Claude Code를 열 때 설치 안내가 뜹니다.
 
@@ -49,7 +49,7 @@ cd claude-custom-skills
   "extraKnownMarketplaces": {
     "hsc": { "source": { "source": "github", "repo": "ppk212/claude-custom-skills" } }
   },
-  "enabledPlugins": { "find-automation@hsc": true, "skill-cleanup@hsc": true }
+  "enabledPlugins": { "hsc@hsc": true }
 }
 ```
 
@@ -189,7 +189,7 @@ Digest DB (주제별 종합 문서):
 
 파일은 위 `plugins/hsc/` 구조의 `digest/`에 있습니다.
 
-### `/design-sample-lab`
+### `/hsc:design-sample-lab`
 
 라이브 사이트 URL과 요구사항 md를 받아, **설치된 디자인 스킬 전부로 리디자인 시안을 한 번에 만들고** 새 폴더에 스킬별로 정리합니다.
 
@@ -197,17 +197,17 @@ Digest DB (주제별 종합 문서):
 
 | 구분 | 설명 |
 |------|------|
-| Agent Skill | `design-sample-lab` 플러그인. `/design-sample-lab`으로 실행하거나 "시안 뽑아줘" 같은 말에 자동 호출 |
+| Agent Skill | `/hsc:design-sample-lab`으로 실행하거나 "시안 뽑아줘" 같은 말에 자동 호출 |
 | Node.js 스크립트 | 환경 점검 · 캡처 · 검증 · 표기 · 비교 보드 생성 |
 | 외부 스킬 | 시안을 만드는 디자인 스킬 11종 (아래 의존성 참고) |
 
 **사용법:**
 
 ```bash
-/design-sample-lab https://stg.example.com/event ./요구사항.md
+/hsc:design-sample-lab https://stg.example.com/event ./요구사항.md
 ```
 
-md 작성법은 [`templates/requirements-template.md`](plugins/design-sample-lab/skills/design-sample-lab/templates/requirements-template.md)에 예시와 함께 있습니다.
+md 작성법은 [`templates/requirements-template.md`](plugins/hsc/skills/design-sample-lab/templates/requirements-template.md)에 예시와 함께 있습니다.
 
 **결과물:**
 
@@ -236,7 +236,7 @@ design-samples-<도메인>-<YYYY-MM-DD>/
 **의존성 — 다른 PC에서 쓰기 전에 확인:**
 
 ```bash
-node plugins/design-sample-lab/skills/design-sample-lab/scripts/doctor.mjs
+node plugins/hsc/skills/design-sample-lab/scripts/doctor.mjs
 ```
 
 설치된 것과 빠진 것을 표로 보여주고, 빠진 것의 설치 명령까지 출력합니다. **전부 없어도 동작합니다** — 있는 스킬만 실행하고, 없는 것은 결과 README에 "미설치로 제외"로 기록됩니다.
@@ -280,14 +280,14 @@ git clone --depth 1 https://github.com/garrytan/gstack ~/.local/share/gstack
 | 품질 검증 | `impeccable`, `designer-skills`의 critique 계열 | 스코어카드 정확도 하락 |
 | 선택 | `OPENAI_API_KEY` 또는 `~/.gstack/openai.json` | 이미지 생성 계열 4종 제외 (11종 → 15종) |
 
-로스터는 [`references/roster.json`](plugins/design-sample-lab/skills/design-sample-lab/references/roster.json)이 단일 출처입니다. 스킬을 추가·제거하려면 이 파일과 `references/skill-roster.md`를 함께 고칩니다.
+로스터는 [`references/roster.json`](plugins/hsc/skills/design-sample-lab/references/roster.json)이 단일 출처입니다. 스킬을 추가·제거하려면 이 파일과 `references/skill-roster.md`를 함께 고칩니다.
 
 > **플러그인 스킬 주의:** `claude plugin install`로 설치한 스킬은 **Claude Code를 재시작해야** 등록됩니다. 재시작 없이 쓰려면 플러그인 캐시의 `skills/<이름>` 폴더를 `~/.claude/skills/`로 복사하세요. 이걸 놓치면 스킬이 조용히 다른 스킬로 폴백해 같은 시안이 두 번 나옵니다.
 
 **파일 구조:**
 
 ```
-plugins/design-sample-lab/skills/design-sample-lab/
+plugins/hsc/skills/design-sample-lab/
 ├── SKILL.md                          # Agent Skill 본체 (6단계 파이프라인)
 ├── references/
 │   ├── skill-roster.md               # 어떤 스킬이 몇 번 시안을 만드는지
@@ -302,7 +302,7 @@ plugins/design-sample-lab/skills/design-sample-lab/
     └── build-board.mjs               # 비교 보드 index.html 생성
 ```
 
-### `/skill-cleanup`
+### `/hsc:skill-cleanup`
 
 설치된 스킬(개인·프로젝트·플러그인·claude.ai)을 **로컬 세션 기록과 대조해** 안 쓰는 것, 겹치는 것, 낡은 것을 근거와 함께 번호 목록으로 보여주고, 고른 것만 되돌릴 수 있게 정리한 뒤 전후 보고서를 냅니다.
 
@@ -312,14 +312,14 @@ plugins/design-sample-lab/skills/design-sample-lab/
 
 | 구분 | 설명 |
 |------|------|
-| Agent Skill | `skill-cleanup` 플러그인. "스킬이 너무 많아", "스킬이 잘 안 불려", "새 플러그인 깔았는데 겹치나?" 같은 말에 자동 호출 |
+| Agent Skill | `skill-cleanup` (hsc 포함). "스킬이 너무 많아", "스킬이 잘 안 불려", "새 플러그인 깔았는데 겹치나?" 같은 말에 자동 호출 |
 | Python 스크립트 | `scripts/skillctl.py` — 표준 라이브러리만 사용. 집계·중복 탐지·보관·복원·백업·전후 비교 |
 | SessionStart Hook | 주기(기본 30일)가 지났거나 새 스킬이 설치되면 세션 시작 시 한 줄 알림. 넘기면 다음 주기까지 조용함. 모델 컨텍스트는 쓰지 않음 |
 
 **사용법:**
 
 ```bash
-/skill-cleanup                     # 전체 점검 → 후보 번호 목록 → 고른 것만 실행
+/hsc:skill-cleanup                 # 전체 점검 → 후보 번호 목록 → 고른 것만 실행
 ```
 
 **지우지 않습니다.** 조치는 세 가지이고 모두 되돌릴 수 있습니다.
@@ -334,21 +334,19 @@ plugins/design-sample-lab/skills/design-sample-lab/
 
 **원칙:** 세션 기록은 로컬에서만 읽고 집계 수치만 씁니다. 대체 스킬을 찾는 웹 검색에는 스킬 이름과 용도만 넣습니다.
 
-**단독 설치:** `/plugin install skill-cleanup@hsc` (마켓플레이스 등록 후). 예전 `install.sh`로 넣은 hook은 `./setup.sh`가 정리합니다.
+예전 `install.sh`로 넣은 hook은 `./setup.sh`가 정리합니다.
 
 세션 기록은 기본 30일만 보관돼서 "미사용" 판단 근거가 짧습니다. `~/.claude/settings.json`에 `"cleanupPeriodDays": 180`처럼 늘려두기를 권합니다.
 
 **파일 구조:**
 
 ```
-plugins/skill-cleanup/
-├── skills/skill-cleanup/SKILL.md           # 스킬 정의 (진행 절차, 판단 기준)
-├── skills/skill-cleanup/scripts/skillctl.py  # 집계·실행 도구
-├── hooks/hooks.json                        # SessionStart 알림
-└── evals/trigger-evals.json                # 자동 호출 테스트 질의
+plugins/hsc/skills/skill-cleanup/
+├── SKILL.md                 # 스킬 정의 (진행 절차, 판단 기준)
+└── scripts/skillctl.py      # 집계·실행 도구 (SessionStart 알림은 hsc/hooks/hooks.json에서 호출)
 ```
 
-### `/find-automation`
+### `/hsc:find-automation`
 
 "AI로 뭘 자동화하고 싶어?"라는 질문에 답하기 어려울 때 쓰는 스킬입니다. 로컬 세션 기록에서 반복되는 일을 찾아 번호 목록으로 보여 주고, 고른 것을 실제 자동화(스킬, 슬래시 커맨드, hook, 셸 스크립트, 스케줄 등)로 만들어 테스트까지 합니다.
 
@@ -364,11 +362,11 @@ plugins/skill-cleanup/
 **사용법:**
 
 ```bash
-/find-automation                    # 최근 30일, 전체 프로젝트
-/find-automation 90d my-api         # 기간·프로젝트 지정
-/find-automation off | on           # 세션 시작 제안 끄기/켜기
-/find-automation hint off           # 반복 표현 힌트 끄기
-/find-automation config interval 30 # 제안 주기 변경
+/hsc:find-automation                # 최근 30일, 전체 프로젝트
+/hsc:find-automation 90d my-api     # 기간·프로젝트 지정
+/hsc:find-automation off | on       # 세션 시작 제안 끄기/켜기
+/hsc:find-automation hint off       # 반복 표현 힌트 끄기
+/hsc:find-automation config interval 30 # 제안 주기 변경
 ```
 
 **흐름:** 세션 분석 → 개인·팀 후보 5~8개(근거 세션, 예상 절약 시간과 계산식, 난이도) → 고른 후보의 자동화 방법 2~4개와 장단점 → 고른 방법으로 구현·테스트(성공·실패 경로)·사용법 안내. 파일을 만들거나 고치기 전에는 항상 확인을 받습니다.
@@ -378,30 +376,29 @@ plugins/skill-cleanup/
 **파일 구조:**
 
 ```
-plugins/find-automation/
-├── .claude-plugin/plugin.json
+plugins/hsc/
 ├── skills/find-automation/
 │   ├── SKILL.md                          # 진행 절차, 후보 찾는 관점, 출력 형식
 │   ├── scripts/scan_sessions.py          # summary · cards · trace
 │   ├── scripts/state.py                  # 마지막 실행·주기·힌트 설정
 │   └── references/automation-methods.md  # 자동화 방법 카탈로그
-├── hooks/                                # hooks.json, session_start.py, prompt_hint.py
-└── evals/trigger-evals.json              # 자동 호출 테스트 질의
+├── hooks/find_automation_*.py            # 세션 시작 제안, 반복 표현 힌트
+└── evals/find-automation-trigger.json    # 자동 호출 테스트 질의
 ```
 
 ## 관리
 
 ```bash
 # (clone 폴더 기준) design-sample-lab 환경 점검
-node plugins/design-sample-lab/skills/design-sample-lab/scripts/doctor.mjs
+node plugins/hsc/skills/design-sample-lab/scripts/doctor.mjs
 
 # skill-cleanup: 스킬 사용 현황 / 알림 주기 변경 / 알림 끄기
-python3 plugins/skill-cleanup/skills/skill-cleanup/scripts/skillctl.py table
-python3 plugins/skill-cleanup/skills/skill-cleanup/scripts/skillctl.py config interval_days 60
-python3 plugins/skill-cleanup/skills/skill-cleanup/scripts/skillctl.py config enabled false
+python3 plugins/hsc/skills/skill-cleanup/scripts/skillctl.py table
+python3 plugins/hsc/skills/skill-cleanup/scripts/skillctl.py config interval_days 60
+python3 plugins/hsc/skills/skill-cleanup/scripts/skillctl.py config enabled false
 
 # find-automation: 제안 주기 / 끄기 (Claude Code 안에서)
-#   /find-automation config interval 30   /find-automation off   /find-automation hint off
+#   /hsc:find-automation config interval 30   /hsc:find-automation off   /hsc:find-automation hint off
 
 # hsc 설정 상태 / Notion 연결 확인 / 자동 기록 로그
 node plugins/hsc/scripts/config.js status

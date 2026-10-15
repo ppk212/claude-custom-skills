@@ -40,7 +40,7 @@ def main():
     state.save(st)
     ctx = (f"[find-automation 힌트] 사용자 메시지에 반복 작업 신호('{m.group(0)}')가 있다. "
            "지금 요청을 먼저 평소대로 끝까지 처리하라. 처리 후 이 작업이 실제로 반복되는 일로 보이면 "
-           "응답 맨 끝에 한 줄로만 '자주 하는 작업이면 /find-automation 으로 자동화할 수 있어요'라고 제안한다. "
+           "응답 맨 끝에 한 줄로만 '자주 하는 작업이면 /hsc:find-automation 으로 자동화할 수 있어요'라고 제안한다. "
            "반복 작업과 무관하면 이 힌트를 무시한다.")
     print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": ctx}},
                      ensure_ascii=False))

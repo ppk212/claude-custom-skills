@@ -707,7 +707,7 @@ def hook():
             new = [i for i in ids if i not in set(known)]
             if new:
                 shown = ", ".join(new[:3]) + (f" 외 {len(new) - 3}개" if len(new) > 3 else "")
-                msgs.append(f"새 스킬 {len(new)}개({shown})가 생겼습니다. 기존 스킬과 겹치는지 보려면 /skill-cleanup")
+                msgs.append(f"새 스킬 {len(new)}개({shown})가 생겼습니다. 기존 스킬과 겹치는지 보려면 /hsc:skill-cleanup")
             s["known_ids"] = ids
 
         last = max([x for x in (parse_iso(s.get("last_run")), parse_iso(s.get("last_prompt"))) if x],
@@ -717,7 +717,7 @@ def hook():
             since = parse_iso(s.get("last_run"))
             ago = f"{(t - since).days}일 전" if since else "아직 안 함"
             msgs.append(f"스킬 정리 주기가 지났습니다(마지막 정리: {ago}, 활성 스킬 {active}개). "
-                        f"/skill-cleanup 으로 점검할 수 있어요. 넘어가면 {s['interval_days']}일 뒤 다시 알립니다.")
+                        f"/hsc:skill-cleanup 으로 점검할 수 있어요. 넘어가면 {s['interval_days']}일 뒤 다시 알립니다.")
         if msgs:
             s["last_prompt"] = iso(t)
             print(json.dumps({"systemMessage": "🧹 " + " / ".join(msgs)}, ensure_ascii=False))

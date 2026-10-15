@@ -3,7 +3,7 @@
 이 파일을 복사해 채운 뒤 URL과 함께 넘기면 된다.
 
 ```
-/design-sample-lab https://stg.example.com/page ./내-요구사항.md
+/hsc:design-sample-lab https://stg.example.com/page ./내-요구사항.md
 ```
 
 **형식은 자유다.** 스킬이 읽고 `R1 · R2 · R3 …` 체크리스트로 정규화한다.

@@ -32,8 +32,8 @@ def main():
     state.save(st)
 
     since = f"마지막 점검 후 {d}일 지났어요" if d is not None else "아직 한 번도 점검하지 않았어요"
-    msg = (f"💡 반복 작업 자동화 점검: {since}. \"자동화할 거 찾아줘\"라고 하거나 /find-automation 으로 실행 "
-           f"(무시하면 {interval}일 뒤 다시 제안 · 끄기: /find-automation off)")
+    msg = (f"💡 반복 작업 자동화 점검: {since}. \"자동화할 거 찾아줘\"라고 하거나 /hsc:find-automation 으로 실행 "
+           f"(무시하면 {interval}일 뒤 다시 제안 · 끄기: /hsc:find-automation off)")
     ctx = ("[find-automation] 세션 시작 시 사용자에게 다음 한 줄 제안이 표시됨: " + msg + "\n"
            "사용자의 첫 메시지가 이 제안에 대한 수락(예: '응', '그래', '해줘', '찾아줘')이면 find-automation 스킬을 실행한다. "
            "거절하거나 다른 요청이면 이 제안은 무시하고 다시 꺼내지 않는다(이미 다음 주기로 미뤄짐).")
