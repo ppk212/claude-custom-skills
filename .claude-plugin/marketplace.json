@@ -1,0 +1,16 @@
+{
+  "name": "hsc",
+  "owner": {
+    "name": "ppk212"
+  },
+  "metadata": {
+    "description": "claude-custom-skills 레포의 Claude Code 플러그인 모음"
+  },
+  "plugins": [
+    {
+      "name": "find-automation",
+      "source": "./plugins/find-automation",
+      "description": "과거 세션에서 반복 작업을 찾아 스킬·hook·스크립트로 자동화하고, 2주마다 한 번 제안한다"
+    }
+  ]
+}

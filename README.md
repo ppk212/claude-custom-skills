@@ -25,6 +25,19 @@ cd claude-custom-skills
 
 나머지(npm 설치, 심링크, 커맨드 설치, Agent Skill 등록, Hook, launchd)는 자동으로 처리됩니다. Notion 설정이 없으면 Stop Hook과 launchd 자동 수집은 등록하지 않습니다 — 매일 실패할 작업을 걸어둘 이유가 없기 때문입니다.
 
+### 플러그인으로 설치 (find-automation)
+
+`plugins/` 아래 스킬은 Claude Code 플러그인이라 clone이나 `setup.sh` 없이 Claude Code 안에서 바로 설치합니다.
+
+```
+/plugin marketplace add ppk212/claude-custom-skills
+/plugin install find-automation@hsc
+```
+
+Claude Code 2.1.275 이상이면 한 줄로도 됩니다: `/plugin install find-automation --marketplace ppk212/claude-custom-skills`
+
+업데이트는 `/plugin marketplace update hsc`, 삭제는 `/plugin uninstall find-automation@hsc`입니다. 설치·삭제 후에는 Claude Code를 재시작합니다.
+
 ## 스킬 목록
 
 ### `/hsc:notion-log`
@@ -302,6 +315,47 @@ skills/skill-cleanup/
 ├── install.sh                # 링크 + hook 등록 / 해제
 ├── scripts/skillctl.py       # 집계·실행 도구
 └── evals/trigger-evals.json  # 자동 호출 테스트 질의
+```
+
+### `/find-automation`
+
+"AI로 뭘 자동화하고 싶어?"라는 질문에 답하기 어려울 때 쓰는 스킬입니다. 로컬 세션 기록에서 반복되는 일을 찾아 번호 목록으로 보여 주고, 고른 것을 실제 자동화(스킬, 슬래시 커맨드, hook, 셸 스크립트, 스케줄 등)로 만들어 테스트까지 합니다.
+
+**구성 요소:**
+
+| 구분 | 설명 |
+|------|------|
+| Agent Skill | `find-automation` — "이거 맨날 하네", "자동화할 거 없을까?" 같은 말에 자동 호출 |
+| Python 스크립트 | `scan_sessions.py` — 표준 라이브러리만 사용, 읽기 전용. 프롬프트 군집·명령 빈도·작업 흐름·세션 카드·근거 추적 |
+| SessionStart Hook | 마지막 실행 후 주기(기본 14일)가 지나면 세션 시작 시 한 줄 제안. 넘기면 다음 주기까지 묻지 않음 |
+| UserPromptSubmit Hook | "맨날", "또 이거" 같은 반복 표현이 나오면 세션당 한 번 힌트 (끌 수 있음) |
+
+**사용법:**
+
+```bash
+/find-automation                    # 최근 30일, 전체 프로젝트
+/find-automation 90d my-api         # 기간·프로젝트 지정
+/find-automation off | on           # 세션 시작 제안 끄기/켜기
+/find-automation hint off           # 반복 표현 힌트 끄기
+/find-automation config interval 30 # 제안 주기 변경
+```
+
+**흐름:** 세션 분석 → 개인·팀 후보 5~8개(근거 세션, 예상 절약 시간과 계산식, 난이도) → 고른 후보의 자동화 방법 2~4개와 장단점 → 고른 방법으로 구현·테스트(성공·실패 경로)·사용법 안내. 파일을 만들거나 고치기 전에는 항상 확인을 받습니다.
+
+**원칙:** 세션은 로컬에서만 읽고 외부로 보내거나 따로 복사·저장하지 않습니다. 화면에 보이는 인용은 토큰·키·비밀번호·이메일 등을 마스킹합니다. 필요한 건 python3뿐이고, 없으면 hook은 조용히 건너뜁니다.
+
+**파일 구조:**
+
+```
+plugins/find-automation/
+├── .claude-plugin/plugin.json
+├── skills/find-automation/
+│   ├── SKILL.md                          # 진행 절차, 후보 찾는 관점, 출력 형식
+│   ├── scripts/scan_sessions.py          # summary · cards · trace
+│   ├── scripts/state.py                  # 마지막 실행·주기·힌트 설정
+│   └── references/automation-methods.md  # 자동화 방법 카탈로그
+├── hooks/                                # hooks.json, session_start.py, prompt_hint.py
+└── evals/trigger-evals.json              # 자동 호출 테스트 질의
 ```
 
 ## 관리

@@ -1,0 +1,22 @@
+[
+  {"query": "팀장님이 다음 주까지 각자 AI로 자동화할 업무 하나씩 정해오라는데 솔직히 뭘 해야 할지 모르겠어. 나 요즘 Claude로 뭐 많이 했는지 보고 아이디어 좀 줘", "should_trigger": true},
+  {"query": "이번에도 web-app PR 올리고 CI 통과하면 머지해줘. 맨날 이거 하는 것도 일이네", "should_trigger": true},
+  {"query": "요즘 Claude Code 쓰는 시간 대부분이 뭔지 궁금함. 내가 반복적으로 시키는 거 있으면 정리해줘", "should_trigger": true},
+  {"query": "지난번처럼 작업한 내용 슬랙 공유용 메시지로 써줘. 근데 이거 매번 내가 따로 시키는 거 귀찮다", "should_trigger": true},
+  {"query": "응 해줘", "should_trigger": false},
+  {"query": "자동화할 만한 거 찾아줘", "should_trigger": true},
+  {"query": "최근 두 달치 my-api 프로젝트 세션만 보고 반복 작업 있으면 스킬로 만들어줘", "should_trigger": true},
+  {"query": "aws sts get-caller-identity 치고 sso 로그인하고 하는 거 하루에도 몇 번씩 하는데 이런 거 줄일 방법 없을까", "should_trigger": true},
+  {"query": "시간 제일 많이 잡아먹는 작업이 뭔지 내 Claude 사용 기록 기준으로 알려줘. 줄일 수 있는 거면 줄이고 싶어", "should_trigger": true},
+  {"query": "똑같은 Confluence 문서 업데이트를 매주 하고 있어서 지겨워 죽겠어. 이거 어떻게 좀 안 될까", "should_trigger": true},
+  {"query": "scripts/backup_db.sh 이거 매일 새벽 3시에 돌도록 crontab에 등록해줘", "should_trigger": false},
+  {"query": "pre-commit hook으로 ruff 포맷 자동 실행되게 .pre-commit-config.yaml 만들어줘", "should_trigger": false},
+  {"query": "내가 설치한 스킬 중에 실제로 안 쓰는 거 뭐 있는지 보고 정리해줘. 너무 많아서 목록이 길어", "should_trigger": false},
+  {"query": "지난번 차란차 검색어 집계 다시 뽑아줘. 이번엔 10월 1일부터", "should_trigger": false},
+  {"query": "오늘 Claude Code로 한 작업 노션에 기록해줘", "should_trigger": false},
+  {"query": "GitHub Actions로 master 머지되면 ECS에 자동 배포되게 워크플로 짜줘", "should_trigger": false},
+  {"query": "어제 하던 세션 이어서 하고 싶은데 그 세션 id 뭐였는지 찾아줘", "should_trigger": false},
+  {"query": "이 PR 리뷰 코멘트 반영해서 다시 푸시해줘", "should_trigger": false},
+  {"query": "Claude Code 세션 jsonl 파일 구조가 어떻게 생겼는지 설명해줘", "should_trigger": false},
+  {"query": "매번 permission 물어보는 거 너무 많은데 자주 쓰는 읽기 명령은 허용 목록에 넣어줘", "should_trigger": false}
+]

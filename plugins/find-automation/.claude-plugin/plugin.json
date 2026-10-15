@@ -1,0 +1,16 @@
+{
+  "name": "find-automation",
+  "version": "0.1.0",
+  "description": "과거 Claude Code 세션을 로컬에서 분석해 반복 작업을 찾고, 고른 것을 스킬·hook·스크립트·스케줄로 자동화한다.",
+  "license": "MIT",
+  "keywords": [
+    "automation",
+    "sessions",
+    "productivity",
+    "hooks"
+  ],
+  "author": {
+    "name": "ppk212"
+  },
+  "repository": "https://github.com/ppk212/claude-custom-skills"
+}
