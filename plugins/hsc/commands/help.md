@@ -9,17 +9,13 @@ allowed-tools: ""
 ```
 # 🛠️ hsc 커맨드
 
-/hsc:setting [check|reset]
-  notion-log·digest에 필요한 Notion API Key, DB ID, Slack Webhook을 설정합니다.
-  check: 상태만 확인 / reset: 지우고 다시 설정
-  값은 ~/.config/hsc/.env 에 저장되고, 대화에는 가려진 값만 표시됩니다.
-
 /hsc:notion-log [YYYY-MM-DD]
   그날(기본: 오늘) 모든 프로젝트의 대화를 모아 Notion에 기록합니다.
   일별 페이지(결과 중심 요약 + 대화 원문 하위 페이지)와 주제별 페이지를 만듭니다.
   같은 날짜를 다시 실행하면 일별 페이지는 새로 쓰고, 주제 페이지에는 덧붙입니다.
   토큰·비밀번호 같은 값은 보내기 전에 가립니다.
-  매일 자동 기록: /hsc:setting 마지막 단계에서 켜기 (macOS)
+  설정: /plugin → Installed → hsc → Configure options
+        (Notion 키는 키체인에 저장, 매일 자동 기록·어제 기록 알림도 여기서 켜고 끔)
 
 /hsc:digest <주제>
   지금까지의 모든 세션에서 주제와 관련된 대화를 찾아 하나의 종합 문서로 정리합니다.

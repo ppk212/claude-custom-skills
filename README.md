@@ -8,7 +8,7 @@ Claude Code에서 사용하는 커스텀 스킬 모음. 세션 자동 기록, �
 
 | 플러그인 | 들어 있는 것 | 필요한 것 |
 |---|---|---|
-| `hsc` | `/hsc:help`, `/hsc:setting`, `/hsc:setup-review`, `/hsc:notion-log`, `/hsc:digest` | Node.js 18+ (notion-log·digest), Notion 키 |
+| `hsc` | `/hsc:help`, `/hsc:setup-review`, `/hsc:notion-log`, `/hsc:digest` | Node.js 18+ (notion-log·digest), Notion 키 |
 | `skill-cleanup` | `/skill-cleanup` + 세션 시작 알림 hook | python3 |
 | `design-sample-lab` | `/design-sample-lab` | Node.js 18+, 디자인 스킬들 (아래 참고) |
 | `find-automation` | `/find-automation` + 세션 시작 제안·반복 표현 힌트 hook | python3 |
@@ -55,7 +55,11 @@ cd claude-custom-skills
 
 ### Notion 설정 (`/hsc:notion-log`, `/hsc:digest`)
 
-설치 후 Claude Code에서 `/hsc:setting`을 실행합니다. 값은 플러그인 밖인 `~/.config/hsc/.env`(권한 600)에 저장돼서 플러그인을 업데이트해도 남고, 대화에는 가려진 값만 보입니다. 키를 채팅에 붙여 넣기 싫으면 터미널에서 `node plugins/hsc/scripts/config.js prompt`로 직접 입력할 수 있습니다. 예전 위치(`~/.claude-notion-logger/.env`, `~/.claude-digest/.env`)의 값도 계속 읽습니다. 설정하지 않으면 이 두 커맨드만 동작하지 않고 나머지는 그대로 씁니다.
+플러그인 설정 창에서 입력합니다. 설치할 때 창이 뜨고, 나중에 바꿀 때는 `/plugin` → **Installed** 탭 → `hsc` → **Configure options**입니다. 바꾼 값은 다음 세션부터 적용됩니다. 설정하지 않으면 이 두 커맨드만 동작하지 않고 나머지는 그대로 씁니다.
+
+- Notion API Key와 Slack Webhook은 **민감 정보로 표시돼 macOS 키체인에 저장**되고 입력할 때 가려집니다. DB ID는 `/config`에서도 바꿀 수 있습니다.
+- Claude Code는 이 값을 hook에만 넘겨 주므로, 세션이 시작될 때 hsc hook이 플러그인 데이터 폴더(`~/.claude/plugins/data/hsc-hsc/config.json`, 권한 600)로 옮겨 두고 스크립트가 그 파일을 읽습니다. 플러그인을 삭제하면 이 폴더도 함께 지워집니다.
+- 예전 위치(`~/.claude-notion-logger/.env`, `~/.claude-digest/.env`)에 값이 있으면 설정 창에 값이 없을 때 그것을 씁니다.
 
 | 입력값 | 없으면 못 쓰는 것 |
 |---|---|
@@ -64,7 +68,12 @@ cd claude-custom-skills
 | Digest DB ID | `/hsc:digest` |
 | Slack Webhook URL | 알림만 안 감 (기록 자체는 정상) |
 
-Notion 설정이 있고 자동 수집을 켜지 않았다면, 어제 대화를 아직 기록하지 않은 날 세션 시작 시 한 줄로 알려 줍니다(하루 한 번, `NOTION_LOG_REMINDER=off`로 끔). 매일 자정 자동 수집(macOS launchd)은 `/hsc:setting` 마지막 단계에서 켜거나, 직접 `bash plugins/hsc/scripts/schedule.sh install|uninstall|status`로 관리합니다.
+같은 설정 창에 켜기/끄기 항목이 두 개 있습니다.
+
+| 항목 | 기본 | 동작 |
+|---|---|---|
+| 매일 자동 기록 (macOS) | 꺼짐 | 켜면 다음 세션 시작 때 launchd에 등록되고 매일 00:00에 어제 대화를 `/hsc:notion-log`로 기록합니다. 끄면 등록이 해제됩니다 |
+| 어제 기록 알림 | 켜짐 | 자동 기록을 끈 경우, 어제 대화가 기록되지 않았으면 세션 시작 때 하루 한 번 한 줄로 알려 줍니다 |
 
 ## 스킬 목록
 
@@ -77,9 +86,9 @@ Claude Code 세션 내용을 Notion에 자동 기록하고 Slack으로 알림을
 | 구분 | 설명 |
 |------|------|
 | 커맨드 | `/hsc:notion-log` (`hsc` 플러그인) |
-| SessionStart Hook | 어제 기록이 없으면 하루 한 번 한 줄 알림 |
+| SessionStart Hook | 설정 값 반영, 자동 기록 등록·해제, 어제 기록 알림 |
 | Node.js 스크립트 | Notion REST API + Slack Webhook |
-| launchd (선택) | 매일 자정 어제 세션 자동 수집 — `scripts/schedule.sh` |
+| launchd (선택) | 매일 자정 어제 세션 자동 기록 — 설정 창의 "매일 자동 기록" |
 
 **사용법:**
 
@@ -123,7 +132,7 @@ plugins/hsc/
 ├── commands/                 # help · setting · setup-review · notion-log · digest → /hsc:*
 ├── hooks/hooks.json          # SessionStart: 어제 기록 알림
 ├── lib/
-│   ├── config.js             # ~/.config/hsc/.env 읽기·쓰기, 기능별 필수 키
+│   ├── config.js             # 플러그인 설정 값 읽기, 기능별 필수 키
 │   ├── sessions.js           # 세션 JSONL → 질문·답변 쌍 (notion-log, digest 공용)
 │   ├── notion.js             # Notion 클라이언트: 재시도, 100블록 분할, 페이지네이션
 │   ├── markdown.js           # 마크다운 → Notion 블록
@@ -136,9 +145,8 @@ plugins/hsc/
 │   ├── search-sessions.js    # 키워드 검색 (관련도 상위 N개)
 │   └── digest-to-notion.js   # 종합 문서 기록
 ├── scripts/
-│   ├── config.js             # 설정 status · set · test · prompt
-│   ├── reminder.js           # SessionStart 알림
-│   ├── schedule.sh           # launchd 자동 수집 등록·해제
+│   ├── session-start.js      # SessionStart: 설정 반영 · 자동 기록 등록 · 어제 기록 알림
+│   ├── config.js             # 설정 진단 (status · test)
 │   └── review-workflow.js    # setup-review용 GitHub Actions 워크플로우 생성
 ├── references/review-prompts.md  # 스택별 리뷰 프롬프트
 └── test/hsc.test.js          # node --test (가짜 Notion 서버 사용)
@@ -395,15 +403,12 @@ python3 plugins/skill-cleanup/skills/skill-cleanup/scripts/skillctl.py config en
 # find-automation: 제안 주기 / 끄기 (Claude Code 안에서)
 #   /find-automation config interval 30   /find-automation off   /find-automation hint off
 
-# notion-log 자동 수집 상태 / 해제
-bash plugins/hsc/scripts/schedule.sh status
-bash plugins/hsc/scripts/schedule.sh uninstall
-
-# 자동 수집 실행 로그
-ls ~/.config/hsc/logs/
-
-# hsc 설정 상태 / 테스트
+# hsc 설정 상태 / Notion 연결 확인 / 자동 기록 로그
 node plugins/hsc/scripts/config.js status
+node plugins/hsc/scripts/config.js test
+ls ~/.claude/plugins/data/hsc-hsc/logs/
+
+# 테스트
 node --test plugins/hsc/test/hsc.test.js
 
 ```

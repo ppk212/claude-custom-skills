@@ -17,7 +17,6 @@ CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 MARKET="hsc"
 SOURCE="ppk212/claude-custom-skills"
 PLUGINS="hsc skill-cleanup design-sample-lab find-automation"
-SCHEDULE="$REPO_DIR/plugins/hsc/scripts/schedule.sh"
 MODE="install"
 
 for a in "$@"; do
@@ -35,7 +34,6 @@ if [ "$MODE" = uninstall ]; then
   for p in $PLUGINS; do
     if claude plugin uninstall "$p@$MARKET" >/dev/null 2>&1; then echo "  🗑  $p"; fi
   done
-  echo "자동 수집을 등록했다면: bash $SCHEDULE uninstall"
   exit 0
 fi
 
@@ -118,11 +116,13 @@ PY
   echo ""
 fi
 
-# 예전 launchd 등록은 옮겨진 daily-log.sh를 가리키므로 새 실행 스크립트(~/.config/hsc)로 다시 건다
-REREG_SCHEDULE=false
-PLIST="$HOME/Library/LaunchAgents/com.claude.notion-logger.plist"
-if [ -f "$PLIST" ] && ! grep -q "/.config/hsc/daily-log.sh" "$PLIST"; then
-  REREG_SCHEDULE=true
+# 예전 setup.sh가 등록한 launchd 작업은 옮겨진 스크립트를 가리켜 매일 실패한다. 해제하고 새 방식을 안내한다.
+OLD_PLIST="$HOME/Library/LaunchAgents/com.claude.notion-logger.plist"
+OLD_SCHEDULE=false
+if [ -f "$OLD_PLIST" ]; then
+  launchctl unload "$OLD_PLIST" 2>/dev/null || true
+  rm -f "$OLD_PLIST"
+  OLD_SCHEDULE=true
 fi
 
 # ------------------------------------------------------------
@@ -146,10 +146,10 @@ for p in $PLUGINS; do
   fi
 done
 
-if [ "$REREG_SCHEDULE" = true ]; then
+if [ "$OLD_SCHEDULE" = true ]; then
   echo ""
-  echo "⏰ 예전 자동 수집 등록을 새 경로로 다시 겁니다"
-  bash "$SCHEDULE" install || true
+  echo "⏰ 예전 자동 수집(launchd) 등록을 해제했습니다. 계속 쓰려면 Claude Code에서"
+  echo "   /plugin → Installed → hsc → Configure options → '매일 자동 기록'을 켜세요."
 fi
 
 # ------------------------------------------------------------
@@ -162,7 +162,7 @@ cat <<EOF
 🎉 설치 완료 — Claude Code를 재시작하면 적용됩니다.
 
   /hsc:help                       전체 안내
-  /hsc:setting                    Notion·Slack 키 설정 (notion-log, digest에 필요)
+  Notion 설정 (notion-log, digest)  /plugin → Installed → hsc → Configure options
   /hsc:setup-review               GitHub Code Review 워크플로우 설정
   /skill-cleanup                  안 쓰는·겹치는 스킬 정리
   /design-sample-lab <URL> <md>   리디자인 시안 일괄 생성

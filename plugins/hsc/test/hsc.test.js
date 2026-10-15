@@ -3,7 +3,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync, spawn } from "node:child_process";
 import { createServer } from "node:http";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -124,7 +124,7 @@ test("notion-log: 수집 → 기록, 429 재시도, 100블록 분할, 비밀값 
   const { server, calls, children, port } = await fakeNotion();
   const env = {
     CLAUDE_CONFIG_DIR: join(dir, ".claude"),
-    HSC_CONFIG_DIR: join(dir, "cfg"),
+    HSC_DATA_DIR: join(dir, "data"),
     HSC_WORK_DIR: join(dir, "work"),
     HSC_NOTION_API: `http://127.0.0.1:${port}`,
     NOTION_API_KEY: "k", DAILY_DB_ID: "d", TOPIC_DB_ID: "t", SLACK_WEBHOOK_URL: "",
@@ -143,17 +143,49 @@ test("notion-log: 수집 → 기록, 429 재시도, 100블록 분할, 비밀값 
     assert.equal(children.get("p1").length, 251); // 안내 1 + 항목 250
     assert.ok(calls.filter((x) => x.url === "/pages").length >= 4); // 429 1번 + 일별·대화·주제
     assert.ok(!existsSync(sessionsFile) && !existsSync(analysisFile));
-    assert.ok(existsSync(join(dir, "cfg", "state", "notion-log-done-2026-10-14")));
+    assert.ok(existsSync(join(dir, "data", "state", "notion-log-done-2026-10-14")));
   } finally {
     server.close();
   }
 });
 
-test("설정이 없으면 /hsc:setting 안내와 함께 exit 2", async () => {
+test("설정이 없으면 Configure options 안내와 함께 exit 2", async () => {
   const dir = mkdtempSync(join(tmpdir(), "hsc-test-"));
-  const r = await run("digest/digest-to-notion.js", [], {
-    HOME: dir, HSC_CONFIG_DIR: join(dir, "cfg"), NOTION_API_KEY: "", DIGEST_DB_ID: "",
+  const r = await run("digest/digest-to-notion.js", ["--data-dir", join(dir, "data")], {
+    HOME: dir, NOTION_API_KEY: "", DIGEST_DB_ID: "",
   });
   assert.equal(r.code, 2);
-  assert.match(r.out, /\/hsc:setting/);
+  assert.match(r.out, /Configure options/);
+});
+
+test("SessionStart: 플러그인 설정 → config.json(0600), 자동 기록 켜기·끄기, 어제 기록 알림", async () => {
+  const dir = makeClaudeDir();
+  const bin = join(dir, "bin");
+  mkdirSync(bin);
+  // 실제 launchd를 건드리지 않도록 가짜 launchctl·claude
+  writeFileSync(join(bin, "launchctl"), `#!/bin/sh\necho "$@" >> "${join(dir, "launchctl.log")}"\n`, { mode: 0o755 });
+  writeFileSync(join(bin, "claude"), "#!/bin/sh\n", { mode: 0o755 });
+  const data = join(dir, "data");
+  const base = {
+    HOME: dir, PATH: `${bin}:${dirname(process.execPath)}:/usr/bin:/bin`,
+    CLAUDE_CONFIG_DIR: join(dir, ".claude"), CLAUDE_PLUGIN_DATA: data,
+    CLAUDE_PLUGIN_OPTION_NOTION_API_KEY: "ntn_x", CLAUDE_PLUGIN_OPTION_TOPIC_DB_ID: "t",
+    CLAUDE_PLUGIN_OPTION_DAILY_DB_ID: "https://www.notion.so/ws/0123456789abcdef0123456789abcdef?v=1",
+  };
+  const plist = join(dir, "Library", "LaunchAgents", "com.claude.hsc.notion-log.plist");
+
+  let r = await run("scripts/session-start.js", [], { ...base, CLAUDE_PLUGIN_OPTION_DAILY_AUTO_LOG: "true" });
+  assert.equal(r.code, 0, r.out);
+  const cfgFile = join(data, "config.json");
+  assert.equal(statSync(cfgFile).mode & 0o777, 0o600);
+  assert.equal(JSON.parse(readFileSync(cfgFile, "utf-8")).DAILY_DB_ID, "0123456789abcdef0123456789abcdef");
+  assert.ok(existsSync(plist) && existsSync(join(data, "daily-log.sh")));
+  assert.match(JSON.parse(r.out).systemMessage, /자동 기록을 켰습니다/);
+
+  r = await run("scripts/session-start.js", [], { ...base, CLAUDE_PLUGIN_OPTION_DAILY_AUTO_LOG: "false" });
+  assert.ok(!existsSync(plist));
+  assert.match(r.out, /자동 기록을 껐습니다/);
+  // fixture에는 10/14 대화만 있어 "어제" 알림은 날짜에 따라 달라진다. 알림을 끄면 출력이 없어야 한다.
+  r = await run("scripts/session-start.js", [], { ...base, CLAUDE_PLUGIN_OPTION_YESTERDAY_REMINDER: "false" });
+  assert.equal(r.out.trim(), "");
 });

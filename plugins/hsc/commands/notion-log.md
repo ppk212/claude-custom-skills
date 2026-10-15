@@ -11,7 +11,7 @@ allowed-tools: Bash(node:*), Read, Write
 ## 1. 대화 수집
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/notion-log/collect-sessions.js" --date <DATE>
+node "${CLAUDE_PLUGIN_ROOT}/notion-log/collect-sessions.js" --data-dir "${CLAUDE_PLUGIN_DATA}" --date <DATE>
 ```
 
 - `기록할 대화가 없습니다`가 나오면 그대로 알리고 끝낸다.
@@ -48,7 +48,7 @@ node "${CLAUDE_PLUGIN_ROOT}/notion-log/collect-sessions.js" --date <DATE>
 ## 3. Notion에 기록
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/notion-log/log-all-sessions.js" --date <DATE>
+node "${CLAUDE_PLUGIN_ROOT}/notion-log/log-all-sessions.js" --data-dir "${CLAUDE_PLUGIN_DATA}" --date <DATE>
 ```
 
 - 일별 페이지: 요약 + "대화 기록" 하위 페이지. 같은 날짜를 다시 실행하면 새로 작성된다.
@@ -56,6 +56,6 @@ node "${CLAUDE_PLUGIN_ROOT}/notion-log/log-all-sessions.js" --date <DATE>
 - Slack Webhook이 설정돼 있으면 알림을 보낸다.
 - 성공하면 작업 파일(대화 원문)은 지워진다.
 
-`설정이 없습니다`로 끝나면 `/hsc:setting`을 안내한다. 그 밖의 오류는 메시지를 그대로 전하고, 분석 JSON은 남아 있으니 원인을 고친 뒤 3단계만 다시 실행하면 된다고 알린다.
+`설정이 없습니다`로 끝나면 출력된 안내(`/plugin` → Installed → hsc → **Configure options**에서 입력 후 새 세션)를 전한다. 연결 문제로 보이면 `node "${CLAUDE_PLUGIN_ROOT}/scripts/config.js" test --data-dir "${CLAUDE_PLUGIN_DATA}"`로 원인을 확인한다. 그 밖의 오류는 메시지를 그대로 전하고, 분석 JSON은 남아 있으니 원인을 고친 뒤 3단계만 다시 실행하면 된다고 알린다.
 
 끝나면 기록한 세션·대화 수, 주제 목록, 출력된 Notion 링크를 짧게 보고한다.

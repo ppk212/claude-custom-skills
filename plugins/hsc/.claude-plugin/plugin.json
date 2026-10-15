@@ -1,7 +1,7 @@
 {
   "name": "hsc",
   "version": "1.1.0",
-  "description": "/hsc:* 커맨드 — 세션을 Notion에 기록(notion-log), 주제별 종합 문서(digest), 설정(setting), PR 자동 리뷰 워크플로우 생성(setup-review), 도움말(help)",
+  "description": "/hsc:* 커맨드 — 세션을 Notion에 기록(notion-log), 주제별 종합 문서(digest), PR 자동 리뷰 워크플로우 생성(setup-review), 도움말(help). Notion 설정은 /plugin → hsc → Configure options",
   "author": {
     "name": "ppk212"
   },
@@ -12,5 +12,46 @@
     "slack",
     "session-log",
     "code-review"
-  ]
+  ],
+  "userConfig": {
+    "notion_api_key": {
+      "type": "string",
+      "title": "Notion API Key",
+      "description": "notion-log·digest용. notion.so/profile/integrations 에서 Internal Integration을 만들고 키(ntn_…)를 붙여 넣으세요. 기록할 DB마다 ⋯ → 연결 에서 이 Integration을 추가해야 합니다.",
+      "sensitive": true
+    },
+    "daily_db_id": {
+      "type": "string",
+      "title": "Daily DB ID (notion-log)",
+      "description": "일별 기록 DB. URL을 그대로 붙여 넣어도 됩니다. 속성: 이름(제목), 생성 날짜(날짜), 선택(선택)"
+    },
+    "topic_db_id": {
+      "type": "string",
+      "title": "Topic DB ID (notion-log)",
+      "description": "주제별 기록 DB. 속성: 이름(제목), 주제(다중 선택), 생성 날짜·수정 날짜(날짜)"
+    },
+    "digest_db_id": {
+      "type": "string",
+      "title": "Digest DB ID (digest)",
+      "description": "주제별 종합 문서 DB. 속성은 Topic DB와 같습니다"
+    },
+    "slack_webhook_url": {
+      "type": "string",
+      "title": "Slack Webhook URL (선택)",
+      "description": "기록이 끝나면 알림을 보냅니다. 비워 두면 보내지 않습니다",
+      "sensitive": true
+    },
+    "daily_auto_log": {
+      "type": "boolean",
+      "title": "매일 자동 기록 (macOS)",
+      "description": "매일 00:00에 어제 대화를 /hsc:notion-log 로 기록합니다 (launchd). 다음 세션 시작 때 적용됩니다",
+      "default": false
+    },
+    "yesterday_reminder": {
+      "type": "boolean",
+      "title": "어제 기록 알림",
+      "description": "자동 기록을 끈 경우, 어제 대화가 기록되지 않았으면 세션 시작 때 하루 한 번 알려 줍니다",
+      "default": true
+    }
+  }
 }

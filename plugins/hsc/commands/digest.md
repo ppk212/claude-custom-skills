@@ -11,7 +11,7 @@ allowed-tools: Bash(node:*), Read, Write
 ## 1. 관련 대화 검색
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/digest/search-sessions.js" --query "$ARGUMENTS"
+node "${CLAUDE_PLUGIN_ROOT}/digest/search-sessions.js" --data-dir "${CLAUDE_PLUGIN_DATA}" --query "$ARGUMENTS"
 ```
 
 - `관련 대화를 찾지 못했습니다`면 다른 검색어(영문/한글, 더 짧은 단어)를 제안하고 끝낸다.
@@ -46,7 +46,7 @@ node "${CLAUDE_PLUGIN_ROOT}/digest/search-sessions.js" --query "$ARGUMENTS"
 ## 3. Notion에 기록
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/digest/digest-to-notion.js"
+node "${CLAUDE_PLUGIN_ROOT}/digest/digest-to-notion.js" --data-dir "${CLAUDE_PLUGIN_DATA}"
 ```
 
-`설정이 없습니다`로 끝나면 `/hsc:setting`을 안내한다. 성공하면 작업 파일은 지워지고 Notion 링크가 출력된다. 문서 제목, 포함한 기간과 세션 수, 링크를 보고한다.
+`설정이 없습니다`로 끝나면 출력된 안내(`/plugin` → Installed → hsc → **Configure options**에서 입력 후 새 세션)를 전한다. 연결 문제로 보이면 `node "${CLAUDE_PLUGIN_ROOT}/scripts/config.js" test --data-dir "${CLAUDE_PLUGIN_DATA}"`로 원인을 확인한다. 성공하면 작업 파일은 지워지고 Notion 링크가 출력된다. 문서 제목, 포함한 기간과 세션 수, 링크를 보고한다.
