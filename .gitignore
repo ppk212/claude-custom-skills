@@ -4,3 +4,4 @@ node_modules/
 logs/
 check-db*.js
 run-today.js
+__pycache__/

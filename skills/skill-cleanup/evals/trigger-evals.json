@@ -1,0 +1,22 @@
+[
+ {"query": "요즘 스킬을 너무 많이 깔아놔서 뭐가 뭔지 모르겠어. 안 쓰는 거 좀 걸러줄래?", "should_trigger": true},
+ {"query": "skill 목록 보면 거의 200개 넘는 것 같은데 이거 컨텍스트 많이 먹지 않나? 정리 좀 하자", "should_trigger": true},
+ {"query": "superpowers brainstorming은 잘 불리는데 내가 만든 사내 보고서 스킬은 자동으로 안 불리더라. 왜 그런지 보고 손 좀 봐줘", "should_trigger": true},
+ {"query": "방금 /plugin 으로 designer-skills 마켓에서 ui-design 플러그인 깔았는데 원래 있던 critique 스킬들이랑 겹치는 거 아냐?", "should_trigger": true},
+ {"query": "내가 실제로 자주 쓰는 스킬이 뭔지 궁금해. 지난 한 달 기준으로 순위 같은 거 볼 수 있어?", "should_trigger": true},
+ {"query": "gstack 깔아둔 지 좀 됐는데 이제 쓸 일이 거의 없어. 스킬들 정리하면서 같이 치워줘. 나중에 다시 쓸 수도 있으니 지우지는 말고", "should_trigger": true},
+ {"query": "예전에 받아둔 design-taste-frontend 스킬 있잖아, 이거보다 나은 공식 스킬 나왔으면 바꾸고 싶은데 내 스킬들 전반적으로 최신화 좀 해줘", "should_trigger": true},
+ {"query": "세션 시작할 때 🧹 스킬 정리 주기가 지났다고 뜨던데 그거 해보자", "should_trigger": true},
+ {"query": "~/.claude/skills 폴더가 너무 지저분해. 중복된 거 합치고 레거시는 업그레이드해줘", "should_trigger": true},
+ {"query": "skills cleanup pls. too many unused ones, keep a backup", "should_trigger": true},
+ {"query": "PR 리뷰 자동으로 해주는 스킬 하나 새로 만들고 싶어. gh pr diff 보고 코멘트 남기는 식으로", "should_trigger": false},
+ {"query": "weekly-report 스킬 description이 좀 약한 것 같아. 이 스킬 하나만 트리거 잘 되게 다듬어줘", "should_trigger": false},
+ {"query": "맥북 디스크 용량이 부족해. ~/Library/Caches 랑 node_modules 같은 거 정리 좀 해줘", "should_trigger": false},
+ {"query": "~/.claude/projects 폴더가 3GB나 되네. 오래된 세션 로그 지워도 되는지, 지우는 방법 알려줘", "should_trigger": false},
+ {"query": "superpowers 플러그인을 최신 버전으로 업데이트하는 방법 알려줘", "should_trigger": false},
+ {"query": "SessionStart hook에서 현재 git 브랜치를 한 줄로 보여주게 settings.json에 추가해줘", "should_trigger": false},
+ {"query": "이 레포 package.json에 안 쓰는 dependency가 많은 것 같아. depcheck 돌려서 정리해줘", "should_trigger": false},
+ {"query": "frontend-design 스킬 써서 회사 랜딩 페이지 히어로 섹션 다시 디자인해줘", "should_trigger": false},
+ {"query": "팀원한테 우리 팀 스킬 레포 설치 방법을 README로 정리해서 보내고 싶어", "should_trigger": false},
+ {"query": "Claude Code에서 스킬이랑 슬래시 커맨드 차이가 뭐야? 언제 뭘 써야 해?", "should_trigger": false}
+]

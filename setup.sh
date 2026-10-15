@@ -225,6 +225,17 @@ echo ""
 node "$DSL_SKILL_DIR/scripts/doctor.mjs" || true
 
 # ============================================================
+# 4-c. Agent Skill 설치 (skill-cleanup)
+#
+# python3만 있으면 되는 단독 스킬. 링크와 SessionStart 알림 hook 등록은
+# 스킬 자체의 install.sh가 맡는다 (단독 설치와 같은 경로를 쓰기 위해).
+# ============================================================
+
+echo ""
+echo "🧹 skill-cleanup Agent Skill 설치..."
+bash "$REPO_DIR/skills/skill-cleanup/install.sh" || echo "  ⚠️  skill-cleanup 설치 실패 (python3 확인). 나머지 세팅은 계속합니다."
+
+# ============================================================
 # 5. Claude Code Hook 설정
 # ============================================================
 

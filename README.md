@@ -21,7 +21,7 @@ cd claude-custom-skills
 
 무엇을 못 쓰게 되는지는 설치가 끝나면 요약으로 알려줍니다. 나중에 `skills/<스킬>/.env`를 채우고 `./setup.sh`를 다시 실행하면 활성화됩니다.
 
-**아무것도 입력하지 않아도** `/hsc:design-sample-lab`, `/hsc:help`, `/hsc:setting`, `/hsc:setup-review`는 바로 쓸 수 있습니다.
+**아무것도 입력하지 않아도** `/hsc:design-sample-lab`, `/skill-cleanup`, `/hsc:help`, `/hsc:setting`, `/hsc:setup-review`는 바로 쓸 수 있습니다.
 
 나머지(npm 설치, 심링크, 커맨드 설치, Agent Skill 등록, Hook, launchd)는 자동으로 처리됩니다. Notion 설정이 없으면 Stop Hook과 launchd 자동 수집은 등록하지 않습니다 — 매일 실패할 작업을 걸어둘 이유가 없기 때문입니다.
 
@@ -251,11 +251,69 @@ skills/design-sample-lab/
     └── hsc:design-sample-lab.md      # 슬래시 커맨드 정의
 ```
 
+### `/skill-cleanup`
+
+설치된 스킬(개인·프로젝트·플러그인·claude.ai)을 **로컬 세션 기록과 대조해** 안 쓰는 것, 겹치는 것, 낡은 것을 근거와 함께 번호 목록으로 보여주고, 고른 것만 되돌릴 수 있게 정리한 뒤 전후 보고서를 냅니다.
+
+스킬이 많아지면 컨텍스트의 약 1%로 정해진 스킬 목록 예산을 넘고, **덜 쓰인 스킬부터 설명이 잘려 자동 호출이 안 됩니다.** 정리하면 실제로 쓰는 스킬이 다시 잘 불립니다.
+
+**구성 요소:**
+
+| 구분 | 설명 |
+|------|------|
+| Agent Skill | `skill-cleanup` — `~/.claude/skills/`에 심링크. "스킬이 너무 많아", "스킬이 잘 안 불려", "새 플러그인 깔았는데 겹치나?" 같은 말에 자동 호출 |
+| Python 스크립트 | `scripts/skillctl.py` — 표준 라이브러리만 사용. 집계·중복 탐지·보관·복원·백업·전후 비교 |
+| SessionStart Hook | 주기(기본 30일)가 지났거나 새 스킬이 설치되면 세션 시작 시 한 줄 알림. 넘기면 다음 주기까지 조용함. 모델 컨텍스트는 쓰지 않음 |
+
+**사용법:**
+
+```bash
+/skill-cleanup                     # 전체 점검 → 후보 번호 목록 → 고른 것만 실행
+```
+
+**지우지 않습니다.** 조치는 세 가지이고 모두 되돌릴 수 있습니다.
+
+| 조치 | 되돌리기 |
+|---|---|
+| 설명만 숨김 (`skillOverrides: name-only`) — 파일 유지, 이름으로 호출 가능 | `skillctl.py override <id> on` |
+| 보관 — `~/.claude/skill-cleanup/archive/`로 이동 | `skillctl.py restore <id>` |
+| 수정·통합 전 백업 — `~/.claude/skill-cleanup/backups/` | 백업 폴더에서 복사 |
+
+플러그인과 claude.ai 스킬은 건드리지 않고 비활성화 방법만 안내합니다.
+
+**원칙:** 세션 기록은 로컬에서만 읽고 집계 수치만 씁니다. 대체 스킬을 찾는 웹 검색에는 스킬 이름과 용도만 넣습니다.
+
+**단독 설치** (이 레포의 다른 스킬 없이):
+
+```bash
+git clone git@github.com:ppk212/claude-custom-skills.git
+bash claude-custom-skills/skills/skill-cleanup/install.sh            # 스킬 + 알림 hook
+bash claude-custom-skills/skills/skill-cleanup/install.sh --no-hook  # 스킬만
+bash claude-custom-skills/skills/skill-cleanup/install.sh --uninstall
+```
+
+세션 기록은 기본 30일만 보관돼서 "미사용" 판단 근거가 짧습니다. `~/.claude/settings.json`에 `"cleanupPeriodDays": 180`처럼 늘려두기를 권합니다.
+
+**파일 구조:**
+
+```
+skills/skill-cleanup/
+├── SKILL.md                  # 스킬 정의 (진행 절차, 판단 기준)
+├── install.sh                # 링크 + hook 등록 / 해제
+├── scripts/skillctl.py       # 집계·실행 도구
+└── evals/trigger-evals.json  # 자동 호출 테스트 질의
+```
+
 ## 관리
 
 ```bash
 # design-sample-lab 환경 점검
 node ~/.claude/skills/design-sample-lab/scripts/doctor.mjs
+
+# skill-cleanup: 스킬 사용 현황 / 알림 주기 변경 / 알림 끄기
+python3 ~/.claude/skills/skill-cleanup/scripts/skillctl.py table
+python3 ~/.claude/skills/skill-cleanup/scripts/skillctl.py config interval_days 60
+python3 ~/.claude/skills/skill-cleanup/scripts/skillctl.py config enabled false
 
 # launchd 상태 확인
 launchctl list | grep claude
@@ -272,4 +330,5 @@ launchctl load ~/Library/LaunchAgents/com.claude.notion-logger.plist
 
 - macOS
 - Node.js 20+
+- Python 3.9+ (skill-cleanup)
 - Claude Code
